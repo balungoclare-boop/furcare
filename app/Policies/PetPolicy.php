@@ -32,8 +32,4 @@ class PetPolicy
         return $user->isVeterinaryStaff() || $pet->user_id === $user->id;
     }
 
-    public function delete(User $user, Pet $pet): bool
-    {
-        return $user->isVeterinaryStaff() || $pet->user_id === $user->id;
-    }
 }

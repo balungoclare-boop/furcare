@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MedicineController extends Controller
@@ -77,13 +78,20 @@ class MedicineController extends Controller
                 ->with('error', 'Medicines module is not ready yet. Run `php artisan migrate` first.');
         }
 
-        $medicine = Medicine::query()->create($this->validatedPayload($request));
+        $payload = $this->validatedPayload($request);
+        $stockAdjustmentReason = $payload['stock_adjustment_reason'] ?? null;
+        unset($payload['stock_adjustment_reason']);
+        $medicine = Medicine::query()->create($payload);
         $this->auditLogService->log(
             $request->user(),
             'created',
             'medicine',
             $medicine->id,
-            sprintf('Created medicine inventory record for %s.', $medicine->name)
+            sprintf('Created medicine inventory record for %s.', $medicine->name),
+            [
+                'initial_stock_quantity' => $medicine->stock_quantity,
+                'stock_adjustment_reason' => $stockAdjustmentReason,
+            ]
         );
 
         return redirect()
@@ -103,13 +111,32 @@ class MedicineController extends Controller
 
     public function update(Request $request, Medicine $medicine): RedirectResponse
     {
-        $medicine->update($this->validatedPayload($request));
+        $previousStockQuantity = $medicine->stock_quantity;
+        $payload = $this->validatedPayload($request, $medicine);
+        $stockAdjustmentReason = $payload['stock_adjustment_reason'] ?? null;
+        unset($payload['stock_adjustment_reason']);
+        $medicine->update($payload);
+        $stockChanged = $previousStockQuantity !== $medicine->stock_quantity;
+
         $this->auditLogService->log(
             $request->user(),
-            'updated',
+            $stockChanged ? 'stock_adjusted' : 'updated',
             'medicine',
             $medicine->id,
-            sprintf('Updated medicine inventory record for %s.', $medicine->name)
+            $stockChanged
+                ? sprintf(
+                    'Adjusted stock for %s from %d to %d.',
+                    $medicine->name,
+                    $previousStockQuantity,
+                    $medicine->stock_quantity
+                )
+                : sprintf('Updated medicine inventory record for %s.', $medicine->name),
+            $stockChanged ? [
+                'previous_stock_quantity' => $previousStockQuantity,
+                'new_stock_quantity' => $medicine->stock_quantity,
+                'quantity_change' => $medicine->stock_quantity - $previousStockQuantity,
+                'reason' => $stockAdjustmentReason,
+            ] : []
         );
 
         return redirect()
@@ -117,34 +144,25 @@ class MedicineController extends Controller
             ->with('success', 'Medicine updated successfully.');
     }
 
-    public function destroy(Request $request, Medicine $medicine): RedirectResponse
+    private function validatedPayload(Request $request, ?Medicine $medicine = null): array
     {
-        $medicineId = $medicine->id;
-        $medicineName = $medicine->name;
-        $medicine->delete();
-
-        $this->auditLogService->log(
-            $request->user(),
-            'deleted',
-            'medicine',
-            $medicineId,
-            sprintf('Deleted medicine inventory record for %s.', $medicineName)
-        );
-
-        return redirect()
-            ->route('medicines.index')
-            ->with('success', 'Medicine deleted successfully.');
-    }
-
-    private function validatedPayload(Request $request): array
-    {
-        return $request->validate([
+        $payload = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'expiration_date' => ['nullable', 'date'],
             'supplier' => ['nullable', 'string', 'max:255'],
             'low_stock_threshold' => ['required', 'integer', 'min:0'],
+            'stock_adjustment_reason' => [
+                Rule::requiredIf(fn (): bool => $medicine === null
+                    ? $request->integer('stock_quantity') > 0
+                    : $request->integer('stock_quantity') !== $medicine->stock_quantity),
+                'nullable',
+                'string',
+                'max:500',
+            ],
         ]);
+
+        return $payload;
     }
 
     private function tableExists(): bool

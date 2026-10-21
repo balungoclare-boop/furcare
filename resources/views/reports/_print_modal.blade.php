@@ -21,7 +21,7 @@
                 <select
                     id="report_type"
                     name="report_type"
-                    class="mt-1 block w-full rounded-md border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                    class="mt-1 block w-full rounded-md border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
                     x-model="reportType"
                     required
                 >
@@ -67,7 +67,7 @@
             </button>
             <button
                 type="submit"
-                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:scale-[1.02] hover:bg-blue-700 hover:shadow-lg hover:shadow-pink-100"
+                class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:scale-[1.02] hover:bg-indigo-700 hover:shadow-lg hover:shadow-jade-100"
             >
                 Generate &amp; Print
             </button>

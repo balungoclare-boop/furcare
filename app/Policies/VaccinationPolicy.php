@@ -32,8 +32,4 @@ class VaccinationPolicy
         return $user->isVeterinaryStaff();
     }
 
-    public function delete(User $user, Vaccination $vaccination): bool
-    {
-        return $user->isVeterinaryStaff();
-    }
 }

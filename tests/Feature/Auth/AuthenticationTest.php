@@ -8,6 +8,10 @@ test('login screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
+test('guests are redirected to login from protected routes', function () {
+    $this->get(route('dashboard'))->assertRedirect(route('login'));
+});
+
 test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 

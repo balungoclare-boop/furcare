@@ -167,27 +167,6 @@ class HospitalizationController extends Controller
             ->with('success', 'Hospitalization record updated successfully.');
     }
 
-    public function destroy(Request $request, Hospitalization $hospitalization): RedirectResponse
-    {
-        $this->ensureAccessible($request, $hospitalization);
-
-        $hospitalizationId = $hospitalization->id;
-        $petName = $hospitalization->pet?->pet_name ?? 'Unknown pet';
-        $hospitalization->delete();
-
-        $this->auditLogService->log(
-            $request->user(),
-            'deleted',
-            'hospitalization',
-            $hospitalizationId,
-            sprintf('Deleted hospitalization record for %s.', $petName)
-        );
-
-        return redirect()
-            ->route('hospitalizations.index')
-            ->with('success', 'Hospitalization record deleted successfully.');
-    }
-
     public function storeProgressNote(Request $request, Hospitalization $hospitalization): RedirectResponse
     {
         $this->ensureAccessible($request, $hospitalization);
@@ -264,7 +243,7 @@ class HospitalizationController extends Controller
 
     private function ensureAccessible(Request $request, Hospitalization $hospitalization): void
     {
-        if ($request->user()->isAdmin()) {
+        if ($request->user()->isStaffOrAdmin()) {
             return;
         }
 

@@ -41,7 +41,7 @@
                     type="checkbox"
                     name="is_active"
                     value="1"
-                    class="rounded border-blue-200 text-blue-600 focus:ring-blue-300"
+                    class="rounded border-indigo-200 text-indigo-600 focus:ring-indigo-300"
                     @checked(old('is_active', $user?->is_active ?? true))
                 >
                 User account is active
@@ -54,7 +54,7 @@
                     type="checkbox"
                     name="must_change_password"
                     value="1"
-                    class="rounded border-blue-200 text-blue-600 focus:ring-blue-300"
+                    class="rounded border-indigo-200 text-indigo-600 focus:ring-indigo-300"
                     @checked(old('must_change_password', $user?->must_change_password ?? true))
                 >
                 Force password change on next login

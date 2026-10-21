@@ -16,9 +16,9 @@
     </div>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <x-ui.stat-card label="Admitted" :value="optional($hospitalization->admitted_date)->format('M d, Y') ?: 'N/A'" tone="brand" />
-        <x-ui.stat-card label="Discharge Date" :value="optional($hospitalization->discharge_date)->format('M d, Y') ?: 'N/A'" tone="soft" />
-        <x-ui.stat-card label="Progress Notes" :value="$hospitalization->progressNotes->count()" tone="accent" />
+        <x-ui.stat-card label="Admitted" :value="optional($hospitalization->admitted_date)->format('M d, Y') ?: 'N/A'" />
+        <x-ui.stat-card label="Discharge Date" :value="optional($hospitalization->discharge_date)->format('M d, Y') ?: 'N/A'" />
+        <x-ui.stat-card label="Progress Notes" :value="$hospitalization->progressNotes->count()" icon="document" />
     </section>
 
     <x-ui.card title="Hospitalization Details">

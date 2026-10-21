@@ -36,6 +36,11 @@ class AppointmentStoreRequest extends FormRequest
     public function rules(): array
     {
         $isStaffOrAdmin = (bool) $this->user()?->isStaffOrAdmin();
+        $appointmentDateRules = ['required', 'date'];
+
+        if ($this->user()?->isClient() && ! $this->isUnchangedPastAppointmentDate()) {
+            $appointmentDateRules[] = 'after_or_equal:today';
+        }
 
         return [
             'pet_id' => [
@@ -67,7 +72,7 @@ class AppointmentStoreRequest extends FormRequest
                 Appointment::TYPE_CHECKUP,
                 Appointment::TYPE_GROOMING,
             ])],
-            'appointment_date' => ['required', 'date'],
+            'appointment_date' => $appointmentDateRules,
             'preferred_time' => [
                 Rule::requiredIf(fn (): bool => $this->input('type') === Appointment::TYPE_GROOMING),
                 'nullable',
@@ -107,5 +112,14 @@ class AppointmentStoreRequest extends FormRequest
                 Appointment::STATUS_CANCELLED,
             ])],
         ];
+    }
+
+    private function isUnchangedPastAppointmentDate(): bool
+    {
+        $appointment = $this->route('appointment');
+
+        return $appointment instanceof Appointment
+            && $appointment->appointment_date?->isBefore(today())
+            && $this->input('appointment_date') === $appointment->appointment_date->toDateString();
     }
 }

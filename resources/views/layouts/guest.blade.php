@@ -26,7 +26,7 @@
             >
 
             @if($isAuthPage)
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-700/70 via-teal-500/60 to-pink-500/65 animate-gradient-slow"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-700/70 via-teal-500/60 to-jade-500/65 animate-gradient-slow"></div>
                 <div class="absolute inset-0 bg-black/55"></div>
 
                 <div class="pointer-events-none absolute inset-0">
@@ -48,7 +48,7 @@
                 </div>
             @else
                 <div class="absolute inset-0 bg-black/60"></div>
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-transparent to-emerald-700/35"></div>
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/40 via-transparent to-emerald-700/35"></div>
             @endif
 
             <div class="relative z-10 flex min-h-screen items-center justify-center px-4 py-5 sm:px-6 sm:py-8">
@@ -61,10 +61,10 @@
                                 class="h-16 w-16 object-contain drop-shadow-md transition duration-300 group-hover:scale-105 sm:h-20 sm:w-20"
                             >
                         </span>
-                        <p class="font-outfit text-2xl font-bold tracking-tight sm:text-3xl {{ $isAuthPage ? 'text-white' : 'text-blue-800' }}">
+                        <p class="font-outfit text-2xl font-bold tracking-tight sm:text-3xl {{ $isAuthPage ? 'text-white' : 'text-indigo-800' }}">
                             NEW CREATION
                         </p>
-                        <p class="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.16em] {{ $isAuthPage ? 'text-blue-100' : 'text-blue-700' }}">
+                        <p class="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.16em] {{ $isAuthPage ? 'text-indigo-100' : 'text-indigo-700' }}">
                             Animal Clinic and Diagnostic Center
                         </p>
                         <p class="mt-2 text-[11px] tracking-[0.07em] sm:text-xs sm:tracking-[0.08em] {{ $isAuthPage ? 'text-slate-100/90' : 'text-slate-600' }}">
@@ -77,143 +77,5 @@
             </div>
         </main>
 
-        <script>
-            (() => {
-                const submissionLockAttribute = 'data-submission-locked';
-                const navigationLockAttribute = 'data-navigation-locked';
-                const navigationFallbackUnlockMs = 9000;
-                let navigationLocked = false;
-                let navigationUnlockTimer = null;
-
-                const toggleSubmitButtons = (form, disabled) => {
-                    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((button) => {
-                        button.disabled = disabled;
-                        button.classList.toggle('cursor-not-allowed', disabled);
-                        button.classList.toggle('opacity-60', disabled);
-                    });
-                };
-
-                const isPrimaryActivation = (event) => {
-                    const isPointerEvent = typeof PointerEvent !== 'undefined' && event instanceof PointerEvent;
-                    if (event instanceof MouseEvent || isPointerEvent) {
-                        return event.button === 0;
-                    }
-
-                    return true;
-                };
-
-                const shouldIgnoreNavigationClick = (anchor, event) => {
-                    if (event.defaultPrevented || !isPrimaryActivation(event)) {
-                        return true;
-                    }
-
-                    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-                        return true;
-                    }
-
-                    if (anchor.dataset.allowDuplicates === 'true') {
-                        return true;
-                    }
-
-                    if (anchor.target === '_blank' || anchor.hasAttribute('download')) {
-                        return true;
-                    }
-
-                    const href = anchor.getAttribute('href');
-                    if (!href || href.startsWith('#') || href.startsWith('javascript:')) {
-                        return true;
-                    }
-
-                    const url = new URL(anchor.href, window.location.href);
-                    if (url.href === window.location.href) {
-                        return true;
-                    }
-
-                    return url.origin !== window.location.origin;
-                };
-
-                const unlockNavigation = () => {
-                    if (navigationUnlockTimer !== null) {
-                        window.clearTimeout(navigationUnlockTimer);
-                        navigationUnlockTimer = null;
-                    }
-
-                    navigationLocked = false;
-                    document.documentElement.classList.remove('cursor-wait');
-
-                    document.querySelectorAll(`a[${navigationLockAttribute}]`).forEach((anchor) => {
-                        anchor.removeAttribute(navigationLockAttribute);
-                        anchor.removeAttribute('aria-disabled');
-                        anchor.classList.remove('pointer-events-none', 'opacity-60', 'cursor-wait');
-                    });
-                };
-
-                document.addEventListener('click', (event) => {
-                    const target = event.target;
-                    if (!(target instanceof Element)) {
-                        return;
-                    }
-
-                    const anchor = target.closest('a[href]');
-                    if (!(anchor instanceof HTMLAnchorElement)) {
-                        return;
-                    }
-
-                    if (shouldIgnoreNavigationClick(anchor, event)) {
-                        return;
-                    }
-
-                    if (navigationLocked) {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    navigationLocked = true;
-                    anchor.setAttribute(navigationLockAttribute, 'true');
-                    anchor.setAttribute('aria-disabled', 'true');
-                    anchor.classList.add('pointer-events-none', 'opacity-60', 'cursor-wait');
-                    document.documentElement.classList.add('cursor-wait');
-
-                    navigationUnlockTimer = window.setTimeout(() => {
-                        unlockNavigation();
-                    }, navigationFallbackUnlockMs);
-
-                    event.preventDefault();
-                    window.location.assign(anchor.href);
-                }, true);
-
-                document.addEventListener('submit', (event) => {
-                    const form = event.target;
-                    if (!(form instanceof HTMLFormElement)) return;
-
-                    if (form.method.toLowerCase() === 'get' || form.dataset.allowDuplicates === 'true') {
-                        return;
-                    }
-
-                    if (form.hasAttribute(submissionLockAttribute)) {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    form.setAttribute(submissionLockAttribute, 'true');
-                    toggleSubmitButtons(form, true);
-                }, true);
-
-                window.addEventListener('pageshow', (event) => {
-                    if (!event.persisted) return;
-
-                    document.querySelectorAll(`form[${submissionLockAttribute}]`).forEach((form) => {
-                        form.removeAttribute(submissionLockAttribute);
-                        toggleSubmitButtons(form, false);
-                    });
-
-                    unlockNavigation();
-                });
-
-                window.addEventListener('pagehide', () => {
-                    unlockNavigation();
-                });
-            })();
-        </script>
     </body>
 </html>

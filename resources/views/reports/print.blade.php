@@ -6,8 +6,8 @@
     <title>{{ $reportTitle }} - {{ $clinicName }}</title>
     <style>
         :root {
-            --primary: #2563eb;
-            --accent: #ec4899;
+            --primary: #3B3281;
+            --accent: #02BF95;
             --text: #0f172a;
             --muted: #475569;
             --border: #e2e8f0;
@@ -35,7 +35,7 @@
         }
 
         .header {
-            background: linear-gradient(120deg, var(--primary), #3b82f6 55%, var(--accent));
+            background: linear-gradient(120deg, var(--primary), #3B3281 55%, var(--accent));
             color: #ffffff;
             padding: 24px;
         }

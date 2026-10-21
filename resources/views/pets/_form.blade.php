@@ -31,17 +31,11 @@
             </div>
         @else
             <input type="hidden" name="owner_user_id" value="{{ auth()->id() }}">
-            <div class="md:col-span-2 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3">
-                <p class="text-xs font-semibold uppercase tracking-[0.15em] text-blue-600">Owner</p>
+            <div class="md:col-span-2 rounded-xl border border-indigo-100 bg-indigo-50/60 px-4 py-3">
+                <p class="text-xs font-semibold uppercase tracking-[0.15em] text-indigo-600">Owner</p>
                 <p class="mt-1 text-sm font-medium text-slate-800">{{ auth()->user()?->name }}</p>
             </div>
         @endif
-
-        <div>
-            <x-input-label for="contact_number" :value="__('Contact Number')" />
-            <x-text-input id="contact_number" name="contact_number" class="mt-1 block w-full" :value="old('contact_number', $pet?->contact_number)" required />
-            <x-input-error :messages="$errors->get('contact_number')" class="mt-2" />
-        </div>
 
         <div>
             <x-input-label for="pet_name" :value="__('Pet Name')" />
@@ -66,12 +60,13 @@
             <select
                 id="sex"
                 name="sex"
-                class="mt-1 block w-full rounded-md border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                class="mt-1 block w-full rounded-md border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
                 required
             >
                 <option value="">Select Sex</option>
                 <option value="male" @selected(old('sex', $pet?->sex) === 'male')>Male</option>
                 <option value="female" @selected(old('sex', $pet?->sex) === 'female')>Female</option>
+                <option value="unknown" @selected(old('sex', $pet?->sex) === 'unknown')>Unknown</option>
             </select>
             <x-input-error :messages="$errors->get('sex')" class="mt-2" />
         </div>
@@ -92,7 +87,7 @@
                 <select
                     id="age_type"
                     name="age_type"
-                    class="block w-full rounded-md border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                    class="block w-full rounded-md border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
                     required
                 >
                     <option value="month" @selected(old('age_type', $pet?->age_type ?? 'year') === 'month')>Month(s)</option>
@@ -101,6 +96,20 @@
             </div>
             <x-input-error :messages="$errors->get('age_value')" class="mt-2" />
             <x-input-error :messages="$errors->get('age_type')" class="mt-2" />
+        </div>
+
+        <div class="md:col-span-2">
+            <x-input-label for="date_of_birth" :value="__('Date of Birth (optional)')" />
+            <x-text-input
+                id="date_of_birth"
+                name="date_of_birth"
+                type="date"
+                max="{{ today()->toDateString() }}"
+                class="mt-1 block w-full"
+                :value="old('date_of_birth', $pet?->date_of_birth?->toDateString())"
+            />
+            <p class="mt-1 text-xs text-slate-500">Enter a date of birth to use the pet's exact age, or leave it blank to use the age above.</p>
+            <x-input-error :messages="$errors->get('date_of_birth')" class="mt-2" />
         </div>
     </div>
 

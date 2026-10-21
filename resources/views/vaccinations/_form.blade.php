@@ -10,6 +10,26 @@
         @method($method)
     @endif
 
+    <div>
+        <x-input-label for="pet_id" :value="__('Link to Registered Pet (optional)')" />
+        <select id="pet_id" name="pet_id" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <option value="">Manual / walk-in record</option>
+            @foreach($pets as $pet)
+                <option
+                    value="{{ $pet->id }}"
+                    data-pet-name="{{ $pet->pet_name }}"
+                    data-owner-name="{{ $pet->owner_name }}"
+                    data-contact-number="{{ $pet->contact_number }}"
+                    @selected((string) old('pet_id', $vaccination?->pet_id) === (string) $pet->id)
+                >
+                    {{ $pet->pet_name }} — {{ $pet->owner_name }}
+                </option>
+            @endforeach
+        </select>
+        <p class="mt-1 text-xs text-slate-500">Linking the record adds it to the pet's medical history and the owner's reminders.</p>
+        <x-input-error :messages="$errors->get('pet_id')" class="mt-2" />
+    </div>
+
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
             <x-input-label for="pet_name" :value="__('Pet Name')" />
@@ -81,6 +101,21 @@
 
         const dateGivenField = form.querySelector('#date_given');
         const nextDueField = form.querySelector('#next_due_date');
+        const petField = form.querySelector('#pet_id');
+        const petNameField = form.querySelector('#pet_name');
+        const ownerNameField = form.querySelector('#owner_name');
+        const contactNumberField = form.querySelector('#contact_number');
+
+        const syncPetDetails = () => {
+            const selectedPet = petField?.selectedOptions[0];
+            if (!selectedPet?.value) {
+                return;
+            }
+
+            if (petNameField) petNameField.value = selectedPet.dataset.petName || '';
+            if (ownerNameField) ownerNameField.value = selectedPet.dataset.ownerName || '';
+            if (contactNumberField) contactNumberField.value = selectedPet.dataset.contactNumber || '';
+        };
 
         const syncNextDueDate = () => {
             if (!dateGivenField || !nextDueField || !dateGivenField.value) {
@@ -98,6 +133,8 @@
         };
 
         dateGivenField?.addEventListener('change', syncNextDueDate);
+        petField?.addEventListener('change', syncPetDetails);
+        syncPetDetails();
         syncNextDueDate();
     })();
 </script>

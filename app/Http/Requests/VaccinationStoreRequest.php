@@ -14,6 +14,7 @@ class VaccinationStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'pet_id' => ['nullable', 'integer', 'exists:pets,id'],
             'pet_name' => ['required', 'string', 'max:255'],
             'owner_name' => ['nullable', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:50'],

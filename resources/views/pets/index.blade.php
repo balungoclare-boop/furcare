@@ -8,10 +8,28 @@
     </div>
 
     <x-ui.card>
+        <form method="GET" action="{{ route('pets.index') }}" class="mb-5 flex flex-wrap items-end gap-2">
+            <div class="min-w-[16rem] flex-1">
+                <label for="pet-search" class="sr-only">Search pets</label>
+                <x-text-input
+                    id="pet-search"
+                    name="search"
+                    type="search"
+                    class="block w-full"
+                    :value="request('search')"
+                    placeholder="Search pet, owner, species, or breed"
+                />
+            </div>
+            <x-ui.button type="submit">Search</x-ui.button>
+            @if(request()->filled('search'))
+                <x-ui.button :href="route('pets.index')" variant="secondary">Clear</x-ui.button>
+            @endif
+        </form>
+
         @if($pets->isEmpty())
             <x-ui.empty-state
-                title="No pets available."
-                description="Start by registering your first patient profile."
+                :title="request()->filled('search') ? 'No matching pets found.' : 'No pets available.'"
+                :description="request()->filled('search') ? 'Try another pet name, owner, species, or breed.' : 'Start by registering your first patient profile.'"
             >
                 <x-ui.button :href="route('pets.create')">Create Pet</x-ui.button>
             </x-ui.empty-state>
@@ -31,7 +49,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($pets as $pet)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3 font-semibold text-slate-800">{{ $pet->pet_name }}</td>
                                 <td class="px-4 py-3">{{ $pet->owner_name }}</td>
                                 <td class="px-4 py-3">{{ $pet->species }}{{ $pet->breed ? ' - '.$pet->breed : '' }}</td>
@@ -47,13 +65,6 @@
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         <x-ui.button :href="route('pets.show', $pet)" variant="secondary">View</x-ui.button>
                                         <x-ui.button :href="route('pets.edit', $pet)" variant="secondary">Edit</x-ui.button>
-                                        <form method="POST" action="{{ route('pets.destroy', $pet) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <x-ui.button variant="danger" onclick="return confirm('Delete this pet record?')">
-                                                Delete
-                                            </x-ui.button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

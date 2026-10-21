@@ -4,7 +4,7 @@
     </div>
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-blue-600">
+        <div class="mb-4 font-medium text-sm text-indigo-600">
             {{ __('A new verification link has been sent to the email address you provided during registration.') }}
         </div>
     @endif
@@ -22,7 +22,7 @@
 
         <button
             type="button"
-            class="underline text-sm text-slate-600 hover:text-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
+            class="underline text-sm text-slate-600 hover:text-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400"
             x-on:click="$dispatch('open-modal', 'confirm-logout')"
         >
             {{ __('Log Out') }}

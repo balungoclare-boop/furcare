@@ -50,6 +50,7 @@ class Appointment extends Model
         'grooming_service_type',
         'notes',
         'status',
+        'accepted_at',
         'is_emergency',
     ];
 
@@ -57,6 +58,7 @@ class Appointment extends Model
     {
         return [
             'appointment_date' => 'date',
+            'accepted_at' => 'datetime',
             'is_emergency' => 'boolean',
         ];
     }

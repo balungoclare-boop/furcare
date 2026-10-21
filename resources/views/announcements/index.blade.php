@@ -40,12 +40,12 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($announcements as $announcement)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3">
                                     <p class="font-semibold text-slate-800">{{ $announcement->title }}</p>
                                     <div class="mt-1 flex flex-wrap items-center gap-1">
                                         @if($announcement->is_pinned)
-                                            <span class="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
+                                            <span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
                                         @endif
                                         @if($announcement->priority === 'important')
                                             <span class="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">IMPORTANT</span>
@@ -69,11 +69,6 @@
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         <x-ui.button :href="route('announcements.edit', $announcement)" variant="secondary">Edit</x-ui.button>
-                                        <form method="POST" action="{{ route('announcements.destroy', $announcement) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <x-ui.button variant="danger" onclick="return confirm('Delete this announcement?')">Delete</x-ui.button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

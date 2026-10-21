@@ -33,7 +33,7 @@ class Hospitalization extends Model
 
     public function scopeOwnedBy(Builder $query, User $user): Builder
     {
-        if ($user->isAdmin()) {
+        if ($user->isStaffOrAdmin()) {
             return $query;
         }
 

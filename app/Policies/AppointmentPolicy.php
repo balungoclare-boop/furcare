@@ -32,7 +32,12 @@ class AppointmentPolicy
         return $user->isVeterinaryStaff() || $appointment->user_id === $user->id;
     }
 
-    public function delete(User $user, Appointment $appointment): bool
+    public function approve(User $user, Appointment $appointment): bool
+    {
+        return $user->isVeterinaryStaff();
+    }
+
+    public function complete(User $user, Appointment $appointment): bool
     {
         return $user->isVeterinaryStaff();
     }

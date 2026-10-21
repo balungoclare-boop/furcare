@@ -20,8 +20,8 @@
     @endif
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <x-ui.stat-card label="Low Stock" :value="$lowStockCount" tone="accent" />
-        <x-ui.stat-card label="Expired" :value="$expiredCount" tone="pink" />
+        <x-ui.stat-card label="Low Stock" :value="$lowStockCount" icon="medicine" />
+        <x-ui.stat-card label="Expired" :value="$expiredCount" variant="critical" icon="alert" />
     </section>
 
     <x-ui.card>
@@ -49,7 +49,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($medicines as $medicine)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3 font-semibold text-slate-800">{{ $medicine->name }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap items-center gap-1">
@@ -72,11 +72,6 @@
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         <x-ui.button :href="route('medicines.edit', $medicine)" variant="secondary">Edit</x-ui.button>
-                                        <form method="POST" action="{{ route('medicines.destroy', $medicine) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <x-ui.button variant="danger" onclick="return confirm('Delete this medicine?')">Delete</x-ui.button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

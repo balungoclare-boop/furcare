@@ -2,7 +2,7 @@
 
 <style>
     :root {
-        --auth-gradient: linear-gradient(135deg, #0ea5e9 0%, #6b8bff 45%, #ec4899 100%);
+        --auth-gradient: linear-gradient(135deg, #3B3281 0%, #02BF95 45%, #02BF95 100%);
     }
 
     .auth-shell {
@@ -211,7 +211,7 @@
         gap: 0.45rem;
         padding: 0.45rem 0.9rem;
         border-radius: 999px;
-        background: linear-gradient(120deg, rgba(14, 165, 233, 0.16), rgba(236, 72, 153, 0.18));
+        background: linear-gradient(120deg, rgba(59, 50, 129, 0.16), rgba(2, 191, 149, 0.18));
         color: #0f172a;
         font-size: 0.82rem;
     }
@@ -323,7 +323,7 @@
         <div class="auth-panel sign-in-panel">
             <div class="form-card">
                 <p class="accent-chip mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Secure Staff Access
@@ -340,7 +340,7 @@
 
                     <!-- Email Address -->
                     <div>
-                        <x-input-label for="email" class="!text-slate-700" :value="__('Email')" />
+                        <x-input-label for="email" class="text-slate-700" :value="__('Email')" />
                         <div class="mt-1 flex items-center rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l9 6 9-6m-18 10h18a2 2 0 002-2V9a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z" />
@@ -362,20 +362,36 @@
 
                     <!-- Password -->
                     <div>
-                        <x-input-label for="password" class="!text-slate-700" :value="__('Password')" />
+                        <x-input-label for="signin_password" class="text-slate-700" :value="__('Password')" />
                         <div class="mt-1 flex items-center rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2h-1V9a5 5 0 00-10 0v2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                             </svg>
                             <input
-                                id="password"
-                                class="w-full border-0 bg-transparent p-0 text-slate-800 outline-none ring-0 placeholder:text-slate-400 focus:ring-0"
+                                id="signin_password"
+                                class="min-w-0 flex-1 border-0 bg-transparent p-0 text-slate-800 outline-none ring-0 placeholder:text-slate-400 focus:ring-0"
                                 type="password"
                                 name="password"
                                 required
                                 autocomplete="current-password"
                                 placeholder="Enter your password"
                             >
+                            <button
+                                type="button"
+                                class="ml-3 shrink-0 text-slate-500 transition hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                data-password-toggle
+                                aria-controls="signin_password"
+                                aria-label="{{ __('Show password') }}"
+                                aria-pressed="false"
+                            >
+                                <svg data-password-icon="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 12s3.5-7 9.75-7 9.75 7 9.75 7-3.5 7-9.75 7-9.75-7-9.75-7z" />
+                                    <circle cx="12" cy="12" r="3" stroke-width="2" />
+                                </svg>
+                                <svg data-password-icon="hide" xmlns="http://www.w3.org/2000/svg" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.8 10.8 0 0112 5c6.25 0 9.75 7 9.75 7a16.5 16.5 0 01-3.1 3.9M6.2 6.2C3.6 8 2.25 12 2.25 12s3.5 7 9.75 7c1.1 0 2.1-.2 3-.6" />
+                                </svg>
+                            </button>
                         </div>
 
                         <x-input-error :messages="$errors->get('password')" class="mt-2" />
@@ -384,7 +400,7 @@
                     <!-- Remember Me -->
                     <div class="block">
                         <label for="remember_me" class="inline-flex items-center">
-                            <input id="remember_me" type="checkbox" class="rounded border-slate-300 bg-white text-blue-600 shadow-sm focus:ring-blue-400" name="remember">
+                            <input id="remember_me" type="checkbox" class="rounded border-slate-300 bg-white text-indigo-600 shadow-sm focus:ring-indigo-400" name="remember">
                             <span class="ms-2 text-sm text-slate-600">{{ __('Remember me') }}</span>
                         </label>
                     </div>
@@ -392,13 +408,13 @@
                     <div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
                         <div class="flex items-center gap-2">
                             @if (Route::has('password.request'))
-                                <a class="font-medium text-blue-600 underline underline-offset-2 transition hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300" href="{{ route('password.request') }}">
+                                <a class="font-medium text-indigo-600 underline underline-offset-2 transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300" href="{{ route('password.request') }}">
                                     {{ __('Forgot your password?') }}
                                 </a>
                             @endif
                         </div>
                         @if (Route::has('register'))
-                            <button type="button" class="secondary-link transition hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300" data-switch-to="signup">
+                            <button type="button" class="secondary-link transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-switch-to="signup">
                                 {{ __('Create client account') }}
                             </button>
                         @endif
@@ -407,7 +423,7 @@
                     <div class="flex justify-start pt-2">
                         <button
                             type="submit"
-                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-10 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-white shadow-lg shadow-blue-900/30 transition duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-900/45 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-0"
+                            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-10 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-white shadow-lg shadow-indigo-900/30 transition duration-200 hover:scale-105 hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-900/45 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-0"
                         >
                             {{ __('Log In') }}
                         </button>
@@ -419,7 +435,7 @@
         <div class="auth-panel sign-up-panel">
             <div class="form-card">
                 <p class="accent-chip mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-jade-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 11V5a3 3 0 00-6 0v1" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 8h2" />
@@ -452,13 +468,35 @@
 
                     <!-- Password -->
                     <div>
-                        <x-input-label for="password" :value="__('Password')" />
+                        <x-input-label for="signup_password" :value="__('Password')" />
 
-                        <x-text-input id="password" class="block mt-1 w-full"
-                                        type="password"
-                                        name="password"
-                                        required autocomplete="new-password" />
+                        <div class="relative mt-1">
+                            <x-text-input id="signup_password" class="block w-full pr-12"
+                                            type="password"
+                                            name="password"
+                                            required autocomplete="new-password"
+                                            aria-describedby="registration-password-guidance" />
+                            <button
+                                type="button"
+                                class="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 transition hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                data-password-toggle
+                                aria-controls="signup_password"
+                                aria-label="{{ __('Show password') }}"
+                                aria-pressed="false"
+                            >
+                                <svg data-password-icon="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 12s3.5-7 9.75-7 9.75 7 9.75 7-3.5 7-9.75 7-9.75-7-9.75-7z" />
+                                    <circle cx="12" cy="12" r="3" stroke-width="2" />
+                                </svg>
+                                <svg data-password-icon="hide" xmlns="http://www.w3.org/2000/svg" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.8 10.8 0 0112 5c6.25 0 9.75 7 9.75 7a16.5 16.5 0 01-3.1 3.9M6.2 6.2C3.6 8 2.25 12 2.25 12s3.5 7 9.75 7c1.1 0 2.1-.2 3-.6" />
+                                </svg>
+                            </button>
+                        </div>
 
+                        <p id="registration-password-guidance" class="mt-1.5 text-sm text-slate-600">
+                            Use at least 8 characters. For stronger security, choose a longer, unique password you do not use elsewhere.
+                        </p>
                         <x-input-error :messages="$errors->get('password')" class="mt-2" />
                     </div>
 
@@ -466,15 +504,33 @@
                     <div>
                         <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
 
-                        <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                        type="password"
-                                        name="password_confirmation" required autocomplete="new-password" />
+                        <div class="relative mt-1">
+                            <x-text-input id="password_confirmation" class="block w-full pr-12"
+                                            type="password"
+                                            name="password_confirmation" required autocomplete="new-password" />
+                            <button
+                                type="button"
+                                class="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 transition hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                data-password-toggle
+                                aria-controls="password_confirmation"
+                                aria-label="{{ __('Show password') }}"
+                                aria-pressed="false"
+                            >
+                                <svg data-password-icon="show" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 12s3.5-7 9.75-7 9.75 7 9.75 7-3.5 7-9.75 7-9.75-7-9.75-7z" />
+                                    <circle cx="12" cy="12" r="3" stroke-width="2" />
+                                </svg>
+                                <svg data-password-icon="hide" xmlns="http://www.w3.org/2000/svg" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.2A10.8 10.8 0 0112 5c6.25 0 9.75 7 9.75 7s-1 2-3.1 3.9M6.2 6.2C3.6 8 2.25 12 2.25 12s3.5 7 9.75 7c1.1 0 2.1-.2 3-.6" />
+                                </svg>
+                            </button>
+                        </div>
 
                         <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                     </div>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-sm">
-                        <button type="button" class="secondary-link transition hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300" data-switch-to="login">
+                        <button type="button" class="secondary-link transition hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300" data-switch-to="login">
                             {{ __('Back to login') }}
                         </button>
                         <x-primary-button class="ms-4">
@@ -519,6 +575,20 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const input = document.getElementById(button.getAttribute('aria-controls'));
+                if (!(input instanceof HTMLInputElement)) return;
+
+                const isVisible = input.type === 'password';
+                input.type = isVisible ? 'text' : 'password';
+                button.setAttribute('aria-pressed', String(isVisible));
+                button.setAttribute('aria-label', isVisible ? @json(__('Hide password')) : @json(__('Show password')));
+                button.querySelector('[data-password-icon="show"]').classList.toggle('hidden', isVisible);
+                button.querySelector('[data-password-icon="hide"]').classList.toggle('hidden', !isVisible);
+            });
+        });
+
         const slider = document.getElementById('authSlider');
         if (!slider) return;
 

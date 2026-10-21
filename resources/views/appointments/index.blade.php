@@ -5,12 +5,13 @@
 
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Appointments</h1>
+            <h1 class="text-2xl font-bold text-slate-900">Appointment Requests</h1>
             <p class="text-sm text-slate-500">
                 {{ $isClient ? 'Track your appointment requests and clinic confirmations.' : 'Track and manage clinic schedules.' }}
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+            <x-ui.button :href="route('appointments.accepted')" variant="secondary">Accepted Appointments</x-ui.button>
             @if(! $isClient)
                 <x-ui.button :href="route('appointments.completed')" variant="secondary">Completed Appointments</x-ui.button>
             @endif
@@ -22,10 +23,28 @@
     </div>
 
     <x-ui.card>
+        <form method="GET" action="{{ route('appointments.index') }}" class="mb-5 flex flex-wrap items-end gap-2">
+            <div class="min-w-[16rem] flex-1">
+                <label for="appointment-search" class="sr-only">Search appointments</label>
+                <x-text-input
+                    id="appointment-search"
+                    name="search"
+                    type="search"
+                    class="block w-full"
+                    :value="request('search')"
+                    placeholder="Search pet, owner, purpose, type, or date"
+                />
+            </div>
+            <x-ui.button type="submit">Search</x-ui.button>
+            @if(request()->filled('search'))
+                <x-ui.button :href="route('appointments.index')" variant="secondary">Clear</x-ui.button>
+            @endif
+        </form>
+
         @if($appointments->isEmpty())
             <x-ui.empty-state
-                title="No active appointments found."
-                description="Only pending and approved appointments appear here."
+                :title="request()->filled('search') ? 'No matching appointments found.' : 'No appointment requests found.'"
+                :description="request()->filled('search') ? 'Try another pet name, owner, purpose, type, or date.' : 'New appointment requests will appear here for review.'"
             >
                 <x-ui.button :href="route('appointments.create')">Create Appointment</x-ui.button>
             </x-ui.empty-state>
@@ -44,7 +63,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($appointments as $appointment)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3 font-semibold text-slate-800">{{ $appointment->display_pet_name }}</td>
                                 <td class="px-4 py-3">{{ $appointment->type_label }}</td>
                                 <td class="px-4 py-3">{{ optional($appointment->appointment_date)->format('M d, Y') }}</td>
@@ -56,34 +75,27 @@
                                                 Emergency
                                             </span>
                                         @endif
-                                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-600">
-                                            {{ $appointment->status_label }}
-                                        </span>
+                                        <x-ui.appointment-status-badge :appointment="$appointment" />
                                     </div>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <div class="flex flex-wrap items-center justify-end gap-2">
-                                        <x-ui.button :href="route('appointments.edit', $appointment)" variant="secondary">Edit</x-ui.button>
+                                <td class="whitespace-nowrap px-4 py-3 align-middle">
+                                    <div class="inline-flex min-w-max flex-nowrap items-center justify-end gap-2">
+                                        @if($isClient)
+                                            <x-ui.button :href="route('appointments.edit', $appointment)" variant="secondary" class="px-3 text-xs">Reschedule</x-ui.button>
+                                        @else
+                                            <x-ui.appointment-status-menu :appointment="$appointment" />
+                                            <x-ui.button :href="route('appointments.edit', $appointment)" variant="secondary" class="px-3 text-xs">Reschedule</x-ui.button>
+                                        @endif
                                         @if($isClient && $appointment->status === \App\Models\Appointment::STATUS_PENDING)
-                                            <form method="POST" action="{{ route('appointments.cancel', $appointment) }}">
+                                            <form class="inline-flex shrink-0" method="POST" action="{{ route('appointments.cancel', $appointment) }}" x-on:submit.prevent="$dispatch('confirm-form', { form: $el, message: 'Are you sure you want to cancel this appointment?' })">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button
                                                     type="submit"
-                                                    class="inline-flex items-center justify-center rounded-xl bg-red-100 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
-                                                    onclick="return confirm('Are you sure you want to cancel this appointment?')"
+                                                    class="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-xl bg-rose-100 px-3 text-xs font-semibold text-rose-800 transition hover:bg-rose-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700 sm:text-sm"
                                                 >
                                                     Cancel
                                                 </button>
-                                            </form>
-                                        @endif
-                                        @if(! $isClient)
-                                            <form method="POST" action="{{ route('appointments.destroy', $appointment) }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-ui.button variant="danger" onclick="return confirm('Delete this appointment?')">
-                                                    Delete
-                                                </x-ui.button>
                                             </form>
                                         @endif
                                     </div>

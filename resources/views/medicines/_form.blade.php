@@ -30,6 +30,13 @@
         </div>
 
         <div>
+            <x-input-label for="stock_adjustment_reason" :value="__('Stock Adjustment Reason')" />
+            <textarea id="stock_adjustment_reason" name="stock_adjustment_reason" rows="2" maxlength="500" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('stock_adjustment_reason') }}</textarea>
+            <p class="mt-1 text-xs text-slate-500">Required for opening stock above zero and whenever the stock quantity changes.</p>
+            <x-input-error :messages="$errors->get('stock_adjustment_reason')" class="mt-2" />
+        </div>
+
+        <div>
             <x-input-label for="low_stock_threshold" :value="__('Low Stock Threshold')" />
             <x-text-input id="low_stock_threshold" name="low_stock_threshold" type="number" min="0" class="mt-1 block w-full" :value="old('low_stock_threshold', $medicine?->low_stock_threshold ?? 10)" required />
             <x-input-error :messages="$errors->get('low_stock_threshold')" class="mt-2" />

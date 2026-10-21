@@ -2,11 +2,11 @@
 
 @php
     $variants = [
-        'primary' => 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-md shadow-blue-100',
-        'secondary' => 'bg-pink-100 text-blue-700 hover:bg-pink-200 focus:ring-pink-300',
-        'danger' => 'bg-pink-500 text-white hover:bg-pink-600 focus:ring-pink-400',
+        'primary' => 'bg-indigo-600 text-white shadow-md shadow-indigo-200/60 hover:bg-indigo-700',
+        'secondary' => 'border border-indigo-100 bg-white text-indigo-700 shadow-sm hover:border-indigo-200 hover:bg-indigo-50',
+        'danger' => 'bg-rose-600 text-white shadow-md shadow-rose-200/60 hover:bg-rose-700',
     ];
-    $classes = 'inline-flex items-center justify-center whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold transition hover-lift focus:outline-none focus:ring-2 focus:ring-offset-2 sm:px-4 sm:text-sm '.($variants[$variant] ?? $variants['primary']);
+    $classes = 'inline-flex w-fit min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-xs font-bold transition hover-lift focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2 sm:text-sm '.($variants[$variant] ?? $variants['primary']);
 @endphp
 
 @if($href)

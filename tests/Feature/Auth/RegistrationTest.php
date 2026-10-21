@@ -5,7 +5,9 @@ use App\Models\User;
 test('registration screen can be rendered', function () {
     $response = $this->get('/register');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)
+        ->assertSee('Use at least 8 characters.')
+        ->assertSee('registration-password-guidance', false);
 });
 
 test('clients can self register', function () {

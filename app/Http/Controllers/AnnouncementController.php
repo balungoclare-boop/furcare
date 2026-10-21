@@ -108,30 +108,6 @@ class AnnouncementController extends Controller
             ->with('success', 'Announcement updated successfully.');
     }
 
-    public function destroy(Request $request, Announcement $announcement): RedirectResponse
-    {
-        $announcementId = $announcement->id;
-        $title = $announcement->title;
-
-        if ($announcement->image_path) {
-            Storage::disk('public')->delete($announcement->image_path);
-        }
-
-        $announcement->delete();
-
-        $this->auditLogService->log(
-            $request->user(),
-            'deleted',
-            'announcement',
-            $announcementId,
-            sprintf('Deleted announcement: %s', $title)
-        );
-
-        return redirect()
-            ->route('announcements.index')
-            ->with('success', 'Announcement deleted successfully.');
-    }
-
     private function validatedPayload(Request $request, bool $isUpdate = false): array
     {
         $imageRules = ['nullable'];

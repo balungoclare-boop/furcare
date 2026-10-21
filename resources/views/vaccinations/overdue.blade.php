@@ -27,7 +27,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($vaccinations as $vaccination)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3 font-semibold text-slate-800">{{ $vaccination->display_pet_name }}</td>
                                 <td class="px-4 py-3">{{ $vaccination->vaccine_name }}</td>
                                 <td class="px-4 py-3">{{ optional($vaccination->date_given)->format('M d, Y') }}</td>

@@ -137,30 +137,4 @@ class UserController extends Controller
             ->with('success', 'User updated successfully.');
     }
 
-    public function destroy(User $user): RedirectResponse
-    {
-        $this->authorize('delete', $user);
-
-        if (auth()->id() === $user->id) {
-            return redirect()
-                ->route('admin.users.index')
-                ->with('error', 'You cannot delete your own account.');
-        }
-
-        $userId = $user->id;
-        $userName = $user->name;
-        $user->delete();
-
-        $this->auditLogService->log(
-            auth()->user(),
-            'deleted',
-            'user',
-            $userId,
-            sprintf('Deleted user account for %s.', $userName)
-        );
-
-        return redirect()
-            ->route('admin.users.index')
-            ->with('success', 'User deleted successfully.');
-    }
 }

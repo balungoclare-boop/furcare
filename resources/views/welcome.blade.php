@@ -16,28 +16,28 @@
     @php($latestAnnouncements = $latestAnnouncements ?? collect())
     @php($allAnnouncements = $allAnnouncements ?? collect())
 
-    <main class="relative h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-pink-50">
+    <main class="relative h-screen overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-jade-50">
         <div class="pointer-events-none absolute inset-0">
-            <div class="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-blue-200/40 blur-3xl"></div>
-            <div class="absolute -bottom-28 -right-28 h-96 w-96 rounded-full bg-pink-200/45 blur-3xl"></div>
+            <div class="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-indigo-200/40 blur-3xl"></div>
+            <div class="absolute -bottom-28 -right-28 h-96 w-96 rounded-full bg-jade-200/45 blur-3xl"></div>
         </div>
 
         <div class="relative z-10 mx-auto flex h-full max-w-7xl flex-col px-4 py-4 sm:px-6 lg:px-10">
             <div class="flex w-full items-center justify-end">
-                <span class="animate-fade-in rounded-full border border-blue-200/70 bg-white/90 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-900 shadow-lg shadow-blue-300/30 sm:text-xs">
+                <span class="animate-fade-in rounded-full border border-indigo-200/70 bg-white/90 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-900 shadow-lg shadow-indigo-300/30 sm:text-xs">
                     Emergency Hotline 0956-348-1378 &bull; Location: Narvacan, Ilocos Sur
                 </span>
             </div>
 
             <section class="grid flex-1 grid-cols-1 items-center gap-8 py-3 md:grid-cols-2 md:gap-10 lg:gap-12">
                 <div class="order-1 animate-rise text-left">
-                    <p class="text-sm font-semibold uppercase tracking-widest text-blue-500">
+                    <p class="text-sm font-semibold uppercase tracking-widest text-indigo-500">
                         Veterinary Clinic Management System
                     </p>
 
                     <h1 class="mt-4 font-outfit text-5xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-6xl">
                         NEW CREATION
-                        <span class="block text-blue-600">Animal Clinic and Diagnostic Center</span>
+                        <span class="block text-indigo-600">Animal Clinic and Diagnostic Center</span>
                     </h1>
 
                     <p class="mt-4 max-w-xl text-base leading-relaxed text-slate-600 md:text-lg">
@@ -47,14 +47,14 @@
                     <div class="mt-8 flex flex-wrap gap-4">
                         <a
                             href="{{ route('login') }}"
-                            class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold uppercase tracking-[0.1em] text-white shadow-lg shadow-blue-900/25 transition duration-200 hover:scale-105 hover:bg-blue-700"
+                            class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-8 py-3 text-sm font-bold uppercase tracking-[0.1em] text-white shadow-lg shadow-indigo-900/25 transition duration-200 hover:scale-105 hover:bg-indigo-700"
                         >
                             Login
                         </a>
                         @if (Route::has('register'))
                             <a
                                 href="{{ route('register') }}"
-                                class="inline-flex items-center justify-center rounded-xl bg-pink-500 px-8 py-3 text-sm font-bold uppercase tracking-[0.1em] text-white shadow-lg shadow-pink-900/25 transition duration-200 hover:scale-105 hover:bg-pink-600"
+                                class="inline-flex items-center justify-center rounded-xl bg-jade-500 px-8 py-3 text-sm font-bold uppercase tracking-[0.1em] text-white shadow-lg shadow-jade-900/25 transition duration-200 hover:scale-105 hover:bg-jade-600"
                             >
                                 Register
                             </a>
@@ -65,9 +65,9 @@
                         <button
                             id="about-us-button"
                             type="button"
-                            class="mt-1 inline-flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-white/85 px-6 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-blue-700 shadow-lg shadow-blue-100/60 transition hover:scale-105 hover:bg-blue-50"
+                            class="mt-1 inline-flex flex-wrap items-center gap-2 rounded-xl border border-indigo-200 bg-white/85 px-6 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-indigo-700 shadow-lg shadow-indigo-100/60 transition hover:scale-105 hover:bg-indigo-50"
                         >
-                            <svg class="h-4 w-4 text-pink-500" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="h-4 w-4 text-jade-500" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M18 10A8 8 0 114.9 3.8a1 1 0 11.7 1.9A6 6 0 1016 10a1 1 0 112 0zM9 7a1 1 0 012 0v3a1 1 0 11-2 0V7zm1 8a1.25 1.25 0 100-2.5A1.25 1.25 0 0010 15z" clip-rule="evenodd" />
                             </svg>
                             About Us
@@ -76,9 +76,9 @@
 
                     <div class="mt-4 max-w-xl space-y-3">
                         <div class="flex items-center justify-between gap-3">
-                            <p class="text-xs font-bold uppercase tracking-[0.14em] text-blue-700">Latest Announcements</p>
+                            <p class="text-xs font-bold uppercase tracking-[0.14em] text-indigo-700">Latest Announcements</p>
                             @if($allAnnouncements->isNotEmpty())
-                                <span class="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-blue-700">
+                                <span class="rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-indigo-700">
                                     {{ $allAnnouncements->count() }} posted
                                 </span>
                             @endif
@@ -98,27 +98,27 @@
                                     data-announcement-image="{{ $announcement->image_path ? asset('storage/'.$announcement->image_path) : '' }}"
                                     data-announcement-priority="{{ $announcement->priority }}"
                                     data-announcement-pinned="{{ $announcement->is_pinned ? '1' : '0' }}"
-                                    class="group w-full rounded-xl border border-blue-100 bg-white/80 p-3 text-left shadow-lg shadow-blue-100/60 backdrop-blur transition hover:scale-[1.01] hover:border-blue-200"
+                                    class="group w-full rounded-xl border border-indigo-100 bg-white/80 p-3 text-left shadow-lg shadow-indigo-100/60 backdrop-blur transition hover:scale-[1.01] hover:border-indigo-200"
                                 >
                                     <div class="flex items-start gap-3">
                                         @if($announcement->image_path)
                                             <img
                                                 src="{{ asset('storage/'.$announcement->image_path) }}"
                                                 alt="{{ $announcement->title }}"
-                                                class="h-16 w-16 flex-shrink-0 rounded-lg border border-blue-100 bg-white object-contain p-1 shadow"
+                                                class="h-16 w-16 flex-shrink-0 rounded-lg border border-indigo-100 bg-white object-contain p-1 shadow"
                                             >
                                         @endif
 
                                         <div class="min-w-0">
                                             <div class="flex flex-wrap items-center gap-1">
                                                 @if($announcement->is_pinned)
-                                                    <span class="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
+                                                    <span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
                                                 @endif
 
                                                 @if($announcement->priority === 'important')
                                                     <span class="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">IMPORTANT</span>
                                                 @else
-                                                    <span class="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-pink-600">ANNOUNCEMENT</span>
+                                                    <span class="rounded-full bg-jade-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-jade-600">ANNOUNCEMENT</span>
                                                 @endif
                                             </div>
                                             <h3 class="mt-1 truncate text-sm font-bold text-slate-900">{{ $announcement->title }}</h3>
@@ -129,7 +129,7 @@
                                                 <p class="text-[11px] text-slate-500">
                                                     Published {{ optional($announcement->publish_at)->format('M d, Y') ?? optional($announcement->created_at)->format('M d, Y') }}
                                                 </p>
-                                                <span class="text-[11px] font-semibold text-blue-600 transition group-hover:text-blue-700">
+                                                <span class="text-[11px] font-semibold text-indigo-600 transition group-hover:text-indigo-700">
                                                     View Details
                                                 </span>
                                             </div>
@@ -137,7 +137,7 @@
                                     </div>
                                 </button>
                             @empty
-                                <article class="rounded-xl border border-blue-100 bg-white/80 p-3 shadow-lg shadow-blue-100/50 backdrop-blur">
+                                <article class="rounded-xl border border-indigo-100 bg-white/80 p-3 shadow-lg shadow-indigo-100/50 backdrop-blur">
                                     <p class="text-sm font-semibold text-slate-800">No announcements yet.</p>
                                     <p class="mt-1 text-xs text-slate-600">Clinic updates will appear here once posted by admin or staff.</p>
                                 </article>
@@ -149,7 +149,7 @@
                                 <button
                                     id="view-all-announcements-button"
                                     type="button"
-                                    class="group inline-flex flex-wrap items-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-blue-700 shadow-md shadow-blue-100/50 transition duration-200 hover:scale-105 hover:border-blue-300 hover:bg-blue-50"
+                                    class="group inline-flex flex-wrap items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-indigo-700 shadow-md shadow-indigo-100/50 transition duration-200 hover:scale-105 hover:border-indigo-300 hover:bg-indigo-50"
                                 >
                                     View All Announcements
                                     <svg class="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 20 20" fill="currentColor">
@@ -163,13 +163,13 @@
 
                 <div class="order-2 relative flex items-center justify-center md:justify-end">
                     <div class="pointer-events-none absolute inset-0">
-                        <svg class="absolute left-6 top-10 h-10 w-10 text-blue-300 opacity-30 animate-float" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="absolute left-6 top-10 h-10 w-10 text-indigo-300 opacity-30 animate-float" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12.3 5.9c1.2-1.9 4.6-1 4.8 1.4.1 1.4-.9 2.6-2.3 2.8-1.7.2-3.3-1.5-2.5-3.2zM6.1 9.9C4 10.3 2.6 7.8 4.2 6.2c1-.9 2.5-.9 3.5 0 1.1 1 .8 2.9-.6 3.7zM17.5 10.5c-.9-1.8.7-4 2.7-3.7 1.3.2 2.3 1.3 2.3 2.7 0 1.5-1.2 2.7-2.7 2.7-.9 0-1.8-.6-2.3-1.7zM6.7 14.5c2.1-1.9 8.4-1.9 10.5 0 1.8 1.6 1.6 4.9-.3 6.2-1.3.9-2.5.7-3.3.3-.9-.4-1.8-.4-2.7 0-.8.4-2 .6-3.3-.3-1.9-1.3-2.1-4.6-.9-6.2z"/>
                         </svg>
-                        <svg class="absolute right-8 top-20 h-8 w-8 text-blue-300 opacity-25 animate-float" style="animation-delay: .6s;" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="absolute right-8 top-20 h-8 w-8 text-indigo-300 opacity-25 animate-float" style="animation-delay: .6s;" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z"/>
                         </svg>
-                        <svg class="absolute bottom-8 left-14 h-8 w-8 text-pink-300 opacity-25 animate-float" style="animation-delay: 1.2s;" fill="currentColor" viewBox="0 0 24 24">
+                        <svg class="absolute bottom-8 left-14 h-8 w-8 text-jade-300 opacity-25 animate-float" style="animation-delay: 1.2s;" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z"/>
                         </svg>
                     </div>
@@ -190,10 +190,10 @@
     </main>
 
     <div id="about-us-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/55 p-4 opacity-0 transition-opacity duration-200">
-        <div id="about-us-modal-panel" class="w-full max-w-2xl translate-y-3 scale-[0.98] rounded-2xl border border-blue-100 bg-white/90 opacity-0 shadow-2xl shadow-blue-900/20 backdrop-blur-lg transition-all duration-200">
-            <div class="flex items-center justify-between border-b border-blue-100 bg-gradient-to-r from-blue-50/90 via-white/80 to-pink-50/90 px-5 py-4">
+        <div id="about-us-modal-panel" class="w-full max-w-2xl translate-y-3 scale-[0.98] rounded-2xl border border-indigo-100 bg-white/90 opacity-0 shadow-2xl shadow-indigo-900/20 backdrop-blur-lg transition-all duration-200">
+            <div class="flex items-center justify-between border-b border-indigo-100 bg-gradient-to-r from-indigo-50/90 via-white/80 to-jade-50/90 px-5 py-4">
                 <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-pink-600">Clinic Profile</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-jade-600">Clinic Profile</p>
                     <h2 class="mt-1 text-lg font-bold text-slate-900">About Us</h2>
                 </div>
                 <button
@@ -209,8 +209,8 @@
             </div>
 
             <div class="max-h-[70vh] space-y-4 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-slate-700">
-                <div class="rounded-xl border border-blue-100 bg-white/80 p-4 shadow-sm">
-                    <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-blue-700">Clinic Introduction</h3>
+                <div class="rounded-xl border border-indigo-100 bg-white/80 p-4 shadow-sm">
+                    <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-indigo-700">Clinic Introduction</h3>
                     <p class="mt-1">
                         NEW CREATION Animal Clinic and Diagnostic Center provides compassionate and
                         professional veterinary care for pets. Our clinic offers consultation, vaccination, hospitalization,
@@ -219,30 +219,30 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm">
-                        <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-blue-700">Mission</h3>
+                    <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-indigo-700">Mission</h3>
                         <p class="mt-1 text-slate-700">
                             To provide high-quality veterinary care and promote responsible pet ownership while ensuring the
                             health and well-being of animals.
                         </p>
                     </div>
 
-                    <div class="rounded-xl border border-pink-100 bg-pink-50/70 p-4 shadow-sm">
-                        <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-pink-600">Vision</h3>
+                    <div class="rounded-xl border border-jade-100 bg-jade-50/70 p-4 shadow-sm">
+                        <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-jade-600">Vision</h3>
                         <p class="mt-1 text-slate-700">
                             To become a trusted veterinary clinic known for compassionate service and modern veterinary healthcare.
                         </p>
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-blue-100 bg-white/80 p-4 shadow-sm">
-                    <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-blue-700">Services</h3>
+                <div class="rounded-xl border border-indigo-100 bg-white/80 p-4 shadow-sm">
+                    <h3 class="text-sm font-bold uppercase tracking-[0.1em] text-indigo-700">Services</h3>
                     <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Consultation</span>
-                        <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Vaccination</span>
-                        <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Hospitalization</span>
-                        <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Laboratory Diagnostics</span>
-                        <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">Pharmacy</span>
+                        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">Consultation</span>
+                        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">Vaccination</span>
+                        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">Hospitalization</span>
+                        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">Laboratory Diagnostics</span>
+                        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">Pharmacy</span>
                         <span class="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">Emergency Pet Care</span>
                     </div>
                 </div>
@@ -255,12 +255,12 @@
     </div>
 
     <div id="announcement-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/55 p-4 opacity-0 transition-opacity duration-200">
-        <div id="announcement-modal-panel" class="w-full max-w-2xl translate-y-3 scale-[0.98] rounded-2xl border border-blue-100 bg-white/90 opacity-0 shadow-2xl shadow-blue-900/20 backdrop-blur-lg transition-all duration-200">
-            <div class="flex items-center justify-between border-b border-blue-100 bg-gradient-to-r from-blue-50/90 via-white/80 to-pink-50/90 px-5 py-4">
+        <div id="announcement-modal-panel" class="w-full max-w-2xl translate-y-3 scale-[0.98] rounded-2xl border border-indigo-100 bg-white/90 opacity-0 shadow-2xl shadow-indigo-900/20 backdrop-blur-lg transition-all duration-200">
+            <div class="flex items-center justify-between border-b border-indigo-100 bg-gradient-to-r from-indigo-50/90 via-white/80 to-jade-50/90 px-5 py-4">
                 <div>
                     <div class="flex flex-wrap items-center gap-1">
-                        <span id="announcement-modal-pinned-badge" class="hidden rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
-                        <span id="announcement-modal-priority-badge" class="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-pink-600">ANNOUNCEMENT</span>
+                        <span id="announcement-modal-pinned-badge" class="hidden rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
+                        <span id="announcement-modal-priority-badge" class="rounded-full bg-jade-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-jade-600">ANNOUNCEMENT</span>
                     </div>
                     <h2 id="announcement-modal-title" class="mt-1 text-lg font-bold text-slate-900">Announcement</h2>
                 </div>
@@ -281,12 +281,12 @@
                     id="announcement-modal-image"
                     src=""
                     alt="Announcement image"
-                    class="hidden max-h-[65vh] w-full rounded-xl border border-blue-100 bg-white object-contain p-1 shadow"
+                    class="hidden max-h-[65vh] w-full rounded-xl border border-indigo-100 bg-white object-contain p-1 shadow"
                 >
 
-                <p id="announcement-modal-date" class="text-xs font-semibold uppercase tracking-[0.1em] text-blue-600"></p>
+                <p id="announcement-modal-date" class="text-xs font-semibold uppercase tracking-[0.1em] text-indigo-600"></p>
 
-                <div class="rounded-xl border border-blue-100 bg-white/80 p-4 shadow-sm">
+                <div class="rounded-xl border border-indigo-100 bg-white/80 p-4 shadow-sm">
                     <p id="announcement-modal-description" class="whitespace-pre-line text-slate-700"></p>
                 </div>
             </div>
@@ -294,10 +294,10 @@
     </div>
 
     <div id="all-announcements-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/55 p-4 opacity-0 transition-opacity duration-200">
-        <div id="all-announcements-modal-panel" class="w-full max-w-4xl translate-y-3 scale-[0.98] rounded-2xl border border-blue-100 bg-white/95 opacity-0 shadow-2xl shadow-blue-900/20 backdrop-blur-lg transition-all duration-200">
-            <div class="flex items-center justify-between border-b border-blue-100 bg-gradient-to-r from-blue-50/90 via-white/80 to-pink-50/90 px-5 py-4">
+        <div id="all-announcements-modal-panel" class="w-full max-w-4xl translate-y-3 scale-[0.98] rounded-2xl border border-indigo-100 bg-white/95 opacity-0 shadow-2xl shadow-indigo-900/20 backdrop-blur-lg transition-all duration-200">
+            <div class="flex items-center justify-between border-b border-indigo-100 bg-gradient-to-r from-indigo-50/90 via-white/80 to-jade-50/90 px-5 py-4">
                 <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-blue-700">Clinic Updates</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo-700">Clinic Updates</p>
                     <h2 class="mt-1 text-lg font-bold text-slate-900">All Announcements</h2>
                 </div>
                 <button
@@ -314,25 +314,25 @@
 
             <div class="max-h-[72vh] space-y-4 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-slate-700">
                 @forelse($allAnnouncements as $announcement)
-                    <article class="rounded-xl border border-blue-100 bg-white/90 p-4 shadow-sm">
+                    <article class="rounded-xl border border-indigo-100 bg-white/90 p-4 shadow-sm">
                         <div class="flex flex-col gap-3 sm:flex-row">
                             @if($announcement->image_path)
                                 <img
                                     src="{{ asset('storage/'.$announcement->image_path) }}"
                                     alt="{{ $announcement->title }}"
-                                    class="h-24 w-full rounded-lg border border-blue-100 bg-white object-contain p-1 shadow sm:h-20 sm:w-20 sm:flex-shrink-0"
+                                    class="h-24 w-full rounded-lg border border-indigo-100 bg-white object-contain p-1 shadow sm:h-20 sm:w-20 sm:flex-shrink-0"
                                 >
                             @endif
 
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center gap-1">
                                     @if($announcement->is_pinned)
-                                        <span class="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
+                                        <span class="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">PINNED</span>
                                     @endif
                                     @if($announcement->priority === 'important')
                                         <span class="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">IMPORTANT</span>
                                     @else
-                                        <span class="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-pink-600">ANNOUNCEMENT</span>
+                                        <span class="rounded-full bg-jade-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-jade-600">ANNOUNCEMENT</span>
                                     @endif
                                 </div>
 
@@ -361,7 +361,7 @@
                         </div>
                     </article>
                 @empty
-                    <article class="rounded-xl border border-blue-100 bg-white/80 p-4 shadow-sm">
+                    <article class="rounded-xl border border-indigo-100 bg-white/80 p-4 shadow-sm">
                         <p class="text-sm font-semibold text-slate-800">No announcements available.</p>
                         <p class="mt-1 text-xs text-slate-600">Clinic updates posted by staff and admin will appear here.</p>
                     </article>
@@ -469,7 +469,7 @@
                         announcementPriorityBadge.textContent = isImportant ? 'IMPORTANT' : 'ANNOUNCEMENT';
                         announcementPriorityBadge.className = isImportant
                             ? 'rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold uppercase text-white'
-                            : 'rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-pink-600';
+                            : 'rounded-full bg-jade-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-jade-600';
 
                         const isPinned = trigger.dataset.announcementPinned === '1';
                         announcementPinnedBadge.classList.toggle('hidden', !isPinned);

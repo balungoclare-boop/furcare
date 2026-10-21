@@ -12,14 +12,14 @@
 
     <div class="space-y-4">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+            <div class="rounded-xl border border-indigo-100 bg-indigo-50/70 p-3">
                 <label for="is_pinned" class="inline-flex cursor-pointer items-center gap-3">
                     <input
                         id="is_pinned"
                         name="is_pinned"
                         type="checkbox"
                         value="1"
-                        class="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                        class="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
                         @checked(old('is_pinned', $announcement?->is_pinned))
                     >
                     <span>
@@ -63,7 +63,7 @@
                 id="description"
                 name="description"
                 rows="5"
-                class="mt-1 block w-full rounded-md border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                class="mt-1 block w-full rounded-md border-slate-300 focus:border-indigo-500 focus:ring-indigo-500"
                 placeholder="Free vaccination this Saturday from 9 AM to 3 PM"
                 required
             >{{ old('description', $announcement?->description) }}</textarea>
@@ -103,7 +103,7 @@
                 name="image"
                 type="file"
                 accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 file:mr-4 file:rounded-md file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
+                class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-700"
             >
             <x-input-error :messages="$errors->get('image')" class="mt-2" />
 

@@ -4,7 +4,71 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name') === 'Laravel' ? 'NEW CREATION Animal Clinic and Diagnostic Center' : config('app.name') }}</title>
+    @php
+        $clinicName = config('app.name') === 'Laravel'
+            ? 'NEW CREATION Animal Clinic and Diagnostic Center'
+            : config('app.name');
+        $routeName = request()->route()?->getName() ?? '';
+        $exactPageTitles = [
+            'admin.dashboard' => 'Admin Dashboard',
+            'staff.dashboard' => 'Clinic Dashboard',
+            'client.dashboard' => 'My Dashboard',
+            'appointments.accepted' => 'Accepted Appointments',
+            'appointments.completed' => 'Completed Appointments',
+            'appointments.grooming.create' => 'Book Grooming',
+            'admin.audit-logs.index' => 'Audit Trail',
+        ];
+        $routeParts = array_values(array_filter(
+            explode('.', $routeName),
+            fn ($part) => ! in_array($part, ['admin', 'staff', 'client'], true)
+        ));
+        $routeAction = end($routeParts) ?: '';
+        $routeResource = count($routeParts) > 1 ? $routeParts[count($routeParts) - 2] : $routeAction;
+        $pageTitle = $exactPageTitles[$routeName] ?? match ($routeAction) {
+            'index' => \Illuminate\Support\Str::headline($routeResource),
+            'create' => 'Create '.\Illuminate\Support\Str::headline($routeResource),
+            'edit' => 'Edit '.\Illuminate\Support\Str::headline($routeResource),
+            'show' => \Illuminate\Support\Str::headline($routeResource).' Details',
+            default => \Illuminate\Support\Str::headline(implode(' ', $routeParts)),
+        };
+        $dashboardRoute = auth()->user()->isAdmin()
+            ? 'admin.dashboard'
+            : (auth()->user()->isVeterinaryStaff() ? 'staff.dashboard' : 'client.dashboard');
+        $isAdmin = auth()->user()->isAdmin();
+        $isStaff = auth()->user()->isVeterinaryStaff();
+        $clientNavGroups = [
+            'Clinic' => [
+                ['label' => 'Dashboard', 'route' => $dashboardRoute, 'icon' => 'dashboard', 'active' => ['admin.dashboard', 'staff.dashboard', 'client.dashboard']],
+                ['label' => 'Pets', 'route' => 'pets.index', 'icon' => 'pets', 'active' => 'pets.*'],
+                ['label' => 'Appointments', 'route' => 'appointments.index', 'icon' => 'calendar', 'active' => 'appointments.*', 'badge' => $clientPendingAppointments ?? 0],
+                ['label' => 'Vaccinations', 'route' => 'vaccinations.index', 'icon' => 'syringe', 'active' => 'vaccinations.*'],
+            ],
+        ];
+        $staffNavGroups = [
+            'Clinic' => [
+                ['label' => 'Dashboard', 'route' => $dashboardRoute, 'icon' => 'dashboard', 'active' => ['admin.dashboard', 'staff.dashboard', 'client.dashboard']],
+                ['label' => 'Pets', 'route' => 'pets.index', 'icon' => 'pets', 'active' => 'pets.*'],
+                ['label' => 'Appointments', 'route' => 'appointments.index', 'icon' => 'calendar', 'active' => 'appointments.*', 'badge' => $pendingAppointments ?? 0],
+                ['label' => 'Vaccinations', 'route' => 'vaccinations.index', 'icon' => 'syringe', 'active' => 'vaccinations.*'],
+                ['label' => 'Hospitalizations', 'route' => 'hospitalizations.index', 'icon' => 'hospital', 'active' => 'hospitalizations.*'],
+            ],
+            'Inventory' => [
+                ['label' => 'Medicines', 'route' => 'medicines.index', 'icon' => 'medicine', 'active' => 'medicines.*'],
+            ],
+            'Communication' => [
+                ['label' => 'Announcements', 'route' => 'announcements.index', 'icon' => 'megaphone', 'active' => 'announcements.*'],
+            ],
+            'Admin' => [
+                ['label' => 'Reports', 'route' => 'reports.index', 'icon' => 'document', 'active' => 'reports.*'],
+            ],
+        ];
+        if ($isAdmin) {
+            $staffNavGroups['Admin'][] = ['label' => 'Users', 'route' => 'admin.users.index', 'icon' => 'users', 'active' => 'admin.users.*'];
+            $staffNavGroups['Admin'][] = ['label' => 'Audit Trail', 'route' => 'admin.audit-logs.index', 'icon' => 'shield', 'active' => 'admin.audit-logs.*'];
+        }
+        $navGroups = $isAdmin || $isStaff ? $staffNavGroups : $clientNavGroups;
+    @endphp
+    <title>@yield('title', $pageTitle) | {{ $clinicName }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,140 +78,171 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-soft-pattern text-slate-800 antialiased">
+<body class="min-h-screen bg-soft-pattern antialiased">
 @auth
-    @php
-        $user = auth()->user();
-        $isAdmin = $user->isAdmin();
-        $isStaff = $user->isVeterinaryStaff();
-        $dashboardRoute = $isAdmin
-            ? 'admin.dashboard'
-            : ($isStaff ? 'staff.dashboard' : 'client.dashboard');
-        $appointmentsNavActive = request()->routeIs('appointments.*') && ! request()->routeIs('appointments.completed');
-        $completedAppointmentsNavActive = request()->routeIs('appointments.completed');
-    @endphp
-
-    <div x-data="{ sidebarOpen: false }" class="relative min-h-screen">
+    <div
+        x-data="{
+            sidebarOpen: false,
+            isMobile: window.matchMedia('(max-width: 767px)').matches,
+            init() {
+                window.addEventListener('resize', () => {
+                    this.isMobile = window.matchMedia('(max-width: 767px)').matches;
+                    if (!this.isMobile) this.sidebarOpen = false;
+                });
+            },
+            openSidebar() { this.sidebarOpen = true; this.$nextTick(() => this.$refs.sidebar.querySelector('button, a[href]')?.focus()) },
+            closeSidebar(restoreFocus = true) {
+                this.sidebarOpen = false;
+                if (restoreFocus && this.isMobile) this.$nextTick(() => this.$refs.menuButton.focus());
+            },
+            trapSidebarFocus(event) {
+                if (!this.isMobile || !this.sidebarOpen || event.key !== 'Tab') return;
+                const elements = [...this.$refs.sidebar.querySelectorAll('a[href], button:not([disabled])')];
+                const first = elements[0];
+                const last = elements[elements.length - 1];
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+            }
+        }"
+        x-effect="document.body.classList.toggle('overflow-hidden', isMobile && sidebarOpen)"
+        class="relative min-h-screen"
+        @keydown="trapSidebarFocus($event)"
+        @keydown.escape.window="if (sidebarOpen) closeSidebar()"
+    >
         <div
             class="fixed inset-0 z-40 bg-slate-900/55 backdrop-blur-sm md:hidden"
             x-show="sidebarOpen"
             x-transition.opacity
-            @click="sidebarOpen = false"
+            @click="closeSidebar()"
         ></div>
 
         <aside
-            class="fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-blue-100 bg-white/95 px-5 py-6 shadow-xl transition-transform duration-300 md:translate-x-0"
+            id="app-sidebar"
+            class="fixed inset-y-0 left-0 z-50 w-72 overflow-y-auto border-r border-indigo-100 bg-white/95 px-5 py-6 shadow-xl transition-transform duration-300 md:translate-x-0"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+            :inert="isMobile && !sidebarOpen"
+            :aria-hidden="isMobile && !sidebarOpen"
+            x-ref="sidebar"
         >
-            <div class="flex items-center gap-3">
-                <img src="{{ asset('images/clinic-logo.jpg') }}" alt="Clinic Logo" class="h-11 w-11 rounded-xl object-cover shadow-md">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-6">
+                <img src="{{ asset('images/clinic-logo.jpg') }}" alt="Clinic Logo" class="h-11 w-11 rounded-xl object-cover shadow-md ring-4 ring-indigo-50">
                 <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-blue-500">Portal</p>
-                    <p class="text-base font-bold text-slate-900">Vet Clinic</p>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500">Care portal</p>
+                    <p class="text-base font-extrabold text-slate-900">Vet Clinic</p>
                 </div>
+                <button
+                    type="button"
+                    class="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 md:hidden"
+                    aria-label="Close navigation menu"
+                    @click="closeSidebar()"
+                >
+                    <span aria-hidden="true" class="text-2xl leading-none">&times;</span>
+                </button>
             </div>
 
-            <nav class="mt-8 space-y-2 text-sm font-semibold">
-                <a href="{{ route($dashboardRoute) }}"
-                   class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('admin.dashboard') || request()->routeIs('staff.dashboard') || request()->routeIs('client.dashboard') || request()->routeIs('dashboard') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                    Dashboard
-                </a>
-
-                <a href="{{ route('pets.index') }}"
-                   class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('pets.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                    Pets
-                </a>
-
-                <a href="{{ route('appointments.index') }}"
-                   class="flex items-center rounded-xl px-3 py-2 transition {{ $appointmentsNavActive ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                    <span>Appointments</span>
-                    @if(($isAdmin || $isStaff) && ($pendingAppointments ?? 0) > 0)
-                        <span class="badge bg-danger ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold leading-none text-white">
-                            {{ $pendingAppointments }}
-                        </span>
-                    @endif
-                </a>
-
-                @if($isAdmin || $isStaff)
-                    <a href="{{ route('appointments.completed') }}"
-                       class="flex items-center rounded-xl px-3 py-2 transition {{ $completedAppointmentsNavActive ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                        Completed Appointments
-                    </a>
-                @endif
-
-                <a href="{{ route('vaccinations.index') }}"
-                   class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('vaccinations.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                    Vaccinations
-                </a>
-
-                @if($isAdmin || $isStaff)
-                    <a href="{{ route('reports.index') }}"
-                       class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('reports.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                        Reports
-                    </a>
-
-                    <a href="{{ route('hospitalizations.index') }}"
-                       class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('hospitalizations.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                        Hospitalizations
-                    </a>
-
-                    <a href="{{ route('medicines.index') }}"
-                       class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('medicines.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                        Medicines
-                    </a>
-
-                    <a href="{{ route('announcements.index') }}"
-                       class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('announcements.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                        Announcements
-                    </a>
-                @endif
-
-                @if($isAdmin)
-                    <a href="{{ route('admin.users.index') }}"
-                       class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                        User Management
-                    </a>
-
-                    <a href="{{ route('admin.audit-logs.index') }}"
-                       class="flex items-center rounded-xl px-3 py-2 transition {{ request()->routeIs('admin.audit-logs.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'text-slate-600 hover:bg-pink-50 hover:text-blue-700' }}">
-                        Audit Trail
-                    </a>
-                @endif
+            <nav class="mt-7 space-y-6" aria-label="Primary navigation" @click="if (isMobile) closeSidebar(false)">
+                @foreach($navGroups as $group => $items)
+                    <section class="space-y-1.5">
+                        @if($group)
+                            <h2 class="px-3 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">{{ $group }}</h2>
+                        @endif
+                        @foreach($items as $item)
+                            <x-ui.nav-item
+                                :route="$item['route']"
+                                :icon="$item['icon']"
+                                :active="$item['active']"
+                                :badge="$item['badge'] ?? null"
+                            >
+                                {{ $item['label'] }}
+                            </x-ui.nav-item>
+                        @endforeach
+                    </section>
+                @endforeach
             </nav>
-
-            <div class="mt-10 rounded-2xl border border-pink-100 bg-pink-50/75 p-4">
-                <p class="text-xs uppercase tracking-[0.2em] text-blue-500">Signed in as</p>
-                <p class="mt-1 text-sm font-semibold text-slate-800">{{ $user->name }}</p>
-                <p class="text-xs uppercase text-slate-500">{{ str_replace('_', ' ', $user->role) }}</p>
-            </div>
         </aside>
 
         <div class="md:pl-72">
-            <header class="sticky top-0 z-30 border-b border-blue-100 bg-white/85 backdrop-blur">
+            <header class="sticky top-0 z-30 border-b border-indigo-100 bg-white/85 backdrop-blur">
                 <div class="flex min-h-16 flex-wrap items-center justify-between gap-2 px-4 py-2 md:h-16 md:flex-nowrap md:py-0 sm:px-6 lg:px-8">
                     <button
                         type="button"
-                        class="inline-flex items-center rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-semibold text-blue-700 shadow-sm md:hidden"
-                        @click="sidebarOpen = true"
+                        x-ref="menuButton"
+                        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-indigo-100 bg-white px-3 py-2 text-sm font-semibold text-indigo-700 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 md:hidden"
+                        aria-label="Open navigation menu"
+                        :aria-expanded="sidebarOpen.toString()"
+                        aria-controls="app-sidebar"
+                        @click="openSidebar()"
                     >
-                        Menu
+                        <x-ui.icon name="menu" class="h-5 w-5" />
                     </button>
 
-                    <div class="hidden md:block">
-                        <p class="text-sm font-medium text-slate-500">Veterinary Clinic Management System</p>
+                    <div class="min-w-0 flex-1 md:flex-none">
+                        <nav aria-label="Breadcrumb" class="hidden text-xs text-slate-500 md:block">
+                            <a href="{{ route($dashboardRoute) }}" class="hover:text-indigo-700">Dashboard</a>
+                            <span aria-hidden="true" class="px-1.5">/</span>
+                            <span aria-current="page">{{ $pageTitle }}</span>
+                        </nav>
+                        <p class="truncate text-sm font-bold text-slate-900 md:mt-0.5 md:text-base">{{ $pageTitle }}</p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <a href="{{ route('profile.edit') }}" class="text-xs font-semibold text-slate-600 hover:text-blue-700 sm:text-sm">
-                            Profile
-                        </a>
-                        <button
-                            type="button"
-                            class="rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-semibold text-white hover:bg-blue-700 sm:px-3 sm:text-sm"
-                            x-on:click="$dispatch('open-modal', 'confirm-logout')"
-                        >
-                            Logout
-                        </button>
+                        <x-dropdown align="right" width="w-80 max-w-[calc(100vw-2rem)]" contentClasses="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                            <x-slot:trigger>
+                                <button type="button" class="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" aria-haspopup="true" :aria-expanded="open.toString()">
+                                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-800" aria-hidden="true">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                                    <span class="hidden max-w-32 truncate sm:inline">{{ auth()->user()->name }}</span>
+                                    <x-ui.icon name="chevron" class="h-4 w-4 rotate-90 text-slate-500" />
+                                    <span class="sr-only">Open account menu</span>
+                                </button>
+                            </x-slot:trigger>
+                            <x-slot:content>
+                                <div class="border-b border-slate-100 px-4 py-3">
+                                    <p class="text-sm font-semibold text-slate-900">{{ auth()->user()->name }}</p>
+                                    <p class="mt-0.5 text-xs capitalize text-slate-600">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
+                                </div>
+                                <a href="{{ route('profile.edit') }}" class="flex min-h-11 items-center px-4 text-sm font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">
+                                    Profile
+                                </a>
+                                <button type="button" class="flex min-h-11 w-full items-center px-4 text-left text-sm font-medium text-rose-700 hover:bg-rose-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-700" x-on:click="$dispatch('open-modal', 'confirm-logout')">
+                                    Logout
+                                </button>
+                            </x-slot:content>
+                        </x-dropdown>
+
+                        <x-dropdown align="right" width="w-80 max-w-[calc(100vw-2rem)]" contentClasses="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                            <x-slot:trigger>
+                                <button type="button" class="relative inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" aria-haspopup="true" :aria-expanded="open.toString()" aria-label="Notifications{{ $unreadNotificationsCount ? ', '.$unreadNotificationsCount.' unread' : '' }}">
+                                    <x-ui.icon name="bell" class="h-5 w-5" />
+                                    @if($unreadNotificationsCount)
+                                        <span class="absolute right-0.5 top-0.5 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-700 px-1 text-[10px] font-bold leading-5 text-white" aria-hidden="true">{{ $unreadNotificationsCount > 99 ? '99+' : $unreadNotificationsCount }}</span>
+                                    @endif
+                                </button>
+                            </x-slot:trigger>
+                            <x-slot:content>
+                                <div class="border-b border-slate-100 px-4 py-3">
+                                    <p class="text-sm font-bold text-slate-900">Notifications</p>
+                                    <p class="text-xs text-slate-600">{{ $unreadNotificationsCount }} unread</p>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto p-2">
+                                    @forelse($recentNotifications as $notification)
+                                        <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
+                                            @csrf
+                                            <button type="submit" class="flex min-h-14 w-full items-start gap-2 rounded-lg px-3 py-2 text-left hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 {{ $notification->read_at ? '' : 'bg-indigo-50/60' }}">
+                                                @if(!$notification->read_at)
+                                                    <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-700" aria-label="Unread"></span>
+                                                @endif
+                                                <span class="min-w-0 flex-1">
+                                                    <span class="block text-sm font-medium text-slate-800">{{ $notification->data['message'] ?? 'You have a clinic update.' }}</span>
+                                                    <span class="mt-1 block text-xs text-slate-600">{{ $notification->created_at->diffForHumans() }}</span>
+                                                </span>
+                                            </button>
+                                        </form>
+                                    @empty
+                                        <p class="px-3 py-5 text-center text-sm text-slate-600">You’re all caught up.</p>
+                                    @endforelse
+                                </div>
+                            </x-slot:content>
+                        </x-dropdown>
                     </div>
                 </div>
             </header>
@@ -155,18 +250,10 @@
             <main class="px-4 py-6 sm:px-6 lg:px-8">
                 <div class="mx-auto max-w-7xl space-y-4 animate-fade-in">
                     @isset($header)
-                        <div class="rounded-2xl border border-blue-100 bg-white/90 px-5 py-4 shadow-sm animate-rise">
+                        <div class="rounded-2xl border border-indigo-100 bg-white/90 px-5 py-4 shadow-sm animate-rise">
                             {{ $header }}
                         </div>
                     @endisset
-
-                    @if (session('success'))
-                        <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
-                    @endif
-
-                    @if (session('error'))
-                        <x-ui.alert type="error">{{ session('error') }}</x-ui.alert>
-                    @endif
 
                     @if ($errors->any())
                         <x-ui.alert type="error">
@@ -180,151 +267,19 @@
         </div>
 
         <x-logout-confirmation-modal />
+        @if(session('success'))
+            <x-ui.toast type="success" :message="session('success')" />
+        @endif
+        @if(session('error'))
+            <x-ui.toast type="error" :message="session('error')" />
+        @endif
+        <x-ui.confirm-modal />
     </div>
 @else
     <main>
         {{ $slot }}
     </main>
 @endauth
-
-<script>
-    (() => {
-        const submissionLockAttribute = 'data-submission-locked';
-        const navigationLockAttribute = 'data-navigation-locked';
-        const navigationFallbackUnlockMs = 9000;
-        let navigationLocked = false;
-        let navigationUnlockTimer = null;
-
-        const toggleSubmitButtons = (form, disabled) => {
-            form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((button) => {
-                button.disabled = disabled;
-                button.classList.toggle('cursor-not-allowed', disabled);
-                button.classList.toggle('opacity-60', disabled);
-            });
-        };
-
-        const isPrimaryActivation = (event) => {
-            const isPointerEvent = typeof PointerEvent !== 'undefined' && event instanceof PointerEvent;
-            if (event instanceof MouseEvent || isPointerEvent) {
-                return event.button === 0;
-            }
-
-            return true;
-        };
-
-        const shouldIgnoreNavigationClick = (anchor, event) => {
-            if (event.defaultPrevented || !isPrimaryActivation(event)) {
-                return true;
-            }
-
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-                return true;
-            }
-
-            if (anchor.dataset.allowDuplicates === 'true') {
-                return true;
-            }
-
-            if (anchor.target === '_blank' || anchor.hasAttribute('download')) {
-                return true;
-            }
-
-            const href = anchor.getAttribute('href');
-            if (!href || href.startsWith('#') || href.startsWith('javascript:')) {
-                return true;
-            }
-
-            const url = new URL(anchor.href, window.location.href);
-            if (url.href === window.location.href) {
-                return true;
-            }
-
-            return url.origin !== window.location.origin;
-        };
-
-        const unlockNavigation = () => {
-            if (navigationUnlockTimer !== null) {
-                window.clearTimeout(navigationUnlockTimer);
-                navigationUnlockTimer = null;
-            }
-
-            navigationLocked = false;
-            document.documentElement.classList.remove('cursor-wait');
-
-            document.querySelectorAll(`a[${navigationLockAttribute}]`).forEach((anchor) => {
-                anchor.removeAttribute(navigationLockAttribute);
-                anchor.removeAttribute('aria-disabled');
-                anchor.classList.remove('pointer-events-none', 'opacity-60', 'cursor-wait');
-            });
-        };
-
-        document.addEventListener('click', (event) => {
-            const target = event.target;
-            if (!(target instanceof Element)) {
-                return;
-            }
-
-            const anchor = target.closest('a[href]');
-            if (!(anchor instanceof HTMLAnchorElement)) {
-                return;
-            }
-
-            if (shouldIgnoreNavigationClick(anchor, event)) {
-                return;
-            }
-
-            if (navigationLocked) {
-                event.preventDefault();
-                return;
-            }
-
-            navigationLocked = true;
-            anchor.setAttribute(navigationLockAttribute, 'true');
-            anchor.setAttribute('aria-disabled', 'true');
-            anchor.classList.add('pointer-events-none', 'opacity-60', 'cursor-wait');
-            document.documentElement.classList.add('cursor-wait');
-
-            navigationUnlockTimer = window.setTimeout(() => {
-                unlockNavigation();
-            }, navigationFallbackUnlockMs);
-
-            event.preventDefault();
-            window.location.assign(anchor.href);
-        }, true);
-
-        document.addEventListener('submit', (event) => {
-            const form = event.target;
-            if (!(form instanceof HTMLFormElement)) return;
-
-            if (form.method.toLowerCase() === 'get' || form.dataset.allowDuplicates === 'true') {
-                return;
-            }
-
-            if (form.hasAttribute(submissionLockAttribute)) {
-                event.preventDefault();
-                return;
-            }
-
-            form.setAttribute(submissionLockAttribute, 'true');
-            toggleSubmitButtons(form, true);
-        }, true);
-
-        window.addEventListener('pageshow', (event) => {
-            if (!event.persisted) return;
-
-            document.querySelectorAll(`form[${submissionLockAttribute}]`).forEach((form) => {
-                form.removeAttribute(submissionLockAttribute);
-                toggleSubmitButtons(form, false);
-            });
-
-            unlockNavigation();
-        });
-
-        window.addEventListener('pagehide', () => {
-            unlockNavigation();
-        });
-    })();
-</script>
 
 </body>
 </html>

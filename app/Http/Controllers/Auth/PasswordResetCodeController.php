@@ -21,31 +21,32 @@ class PasswordResetCodeController extends Controller
     public function verify(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
             'code' => ['required', 'digits:6'],
         ]);
 
         $email = strtolower($validated['email']);
         $record = PasswordResetCode::where('email', $email)->first();
+        $genericCodeError = __('The code is invalid, expired, or unavailable. Please request a new one.');
 
         if (! $record) {
-            return back()->withErrors(['code' => __('No verification code found for that email. Please request a new one.')]);
+            return back()->withErrors(['code' => $genericCodeError]);
         }
 
         if ($record->attempts >= 5) {
-            return back()->withErrors(['code' => __('Too many attempts. Please request a new verification code.')]);
+            return back()->withErrors(['code' => $genericCodeError]);
         }
 
         if ($record->isExpired()) {
             $record->delete();
 
-            return back()->withErrors(['code' => __('This code has expired. Please request a new one.')]);
+            return back()->withErrors(['code' => $genericCodeError]);
         }
 
         if (! Hash::check($validated['code'], $record->code_hash)) {
             $record->increment('attempts');
 
-            return back()->withErrors(['code' => __('The code you entered is incorrect.')]);
+            return back()->withErrors(['code' => $genericCodeError]);
         }
 
         $request->session()->put([

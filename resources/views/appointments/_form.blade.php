@@ -39,26 +39,14 @@
     }
     $checkupPurpose = old('checkup_purpose', $isCheckup ? $appointmentPurpose : null);
 
-    $clientVisibleStatuses = [
-        \App\Models\Appointment::STATUS_PENDING,
-        \App\Models\Appointment::STATUS_APPROVED,
-        \App\Models\Appointment::STATUS_COMPLETED,
-        \App\Models\Appointment::STATUS_REJECTED,
-    ];
-    $staffStatuses = [
-        \App\Models\Appointment::STATUS_PENDING,
-        \App\Models\Appointment::STATUS_APPROVED,
-        \App\Models\Appointment::STATUS_COMPLETED,
-        \App\Models\Appointment::STATUS_REJECTED,
-        \App\Models\Appointment::STATUS_CANCELLED,
-    ];
     $currentStatus = old('status', $appointment?->status ?? \App\Models\Appointment::STATUS_PENDING);
     if ($currentStatus === 'confirmed') {
         $currentStatus = \App\Models\Appointment::STATUS_APPROVED;
     }
     $isEmergency = (bool) old('is_emergency', (bool) ($appointment?->is_emergency ?? false));
     $preferredTime = old('preferred_time', $appointment?->preferred_time ? substr((string) $appointment->preferred_time, 0, 5) : null);
-    $isStaffWalkInMode = ! $isClient && ! $appointment;
+    $appointmentDate = old('appointment_date', optional($appointment?->appointment_date)->toDateString());
+    $isStaffWalkInMode = ! $isClient && ! $appointment && ! request()->filled('pet_id');
 @endphp
 
 <form id="appointment-form" method="POST" action="{{ $action }}" class="space-y-4">
@@ -127,7 +115,7 @@
                 <select id="pet_id" name="pet_id" class="mt-1 block w-full rounded-md border-slate-300">
                     <option value="">Select Pet</option>
                     @foreach($pets as $pet)
-                        <option value="{{ $pet->id }}" @selected((string) old('pet_id', $appointment?->pet_id) === (string) $pet->id)>
+                        <option value="{{ $pet->id }}" @selected((string) old('pet_id', $appointment?->pet_id ?? request('pet_id')) === (string) $pet->id)>
                             {{ $pet->pet_name }}
                         </option>
                     @endforeach
@@ -136,11 +124,53 @@
             </div>
         @endif
 
-        <div>
-            <x-input-label id="appointment_date_label" for="appointment_date" :value="$isGrooming ? __('Preferred Date') : __('Appointment Date')" />
-            <x-text-input id="appointment_date" name="appointment_date" type="date" class="mt-1 block w-full" :value="old('appointment_date', optional($appointment?->appointment_date)->toDateString())" required />
-            <x-input-error :messages="$errors->get('appointment_date')" class="mt-2" />
-        </div>
+        @if($isClient)
+            <div class="md:col-span-2">
+                <p id="appointment_date_label" class="text-sm font-medium text-slate-700">{{ $isGrooming ? __('Preferred Date') : __('Appointment Date') }}</p>
+                <div
+                    id="appointment-calendar"
+                    class="mt-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                    data-availability-url="{{ route('appointments.availability') }}"
+                    data-selected-date="{{ $appointmentDate }}"
+                    data-appointment-id="{{ $appointment?->id }}"
+                    data-limit="{{ \App\Services\AppointmentAvailabilityService::DAILY_LIMIT }}"
+                >
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                            <h3 id="appointment-calendar-month" class="text-lg font-bold text-slate-800"></h3>
+                            <p class="text-xs text-slate-500">Select a date. Up to {{ \App\Services\AppointmentAvailabilityService::DAILY_LIMIT }} appointments are available each day.</p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-1.5">
+                            <button type="button" data-calendar-today class="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Today</button>
+                            <button type="button" data-calendar-previous aria-label="Previous month" class="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">&lsaquo;</button>
+                            <button type="button" data-calendar-next aria-label="Next month" class="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">&rsaquo;</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <div class="min-w-[35rem]">
+                            <div class="grid grid-cols-7 border-l border-t border-slate-200 bg-slate-50 text-center text-xs font-semibold text-slate-500">
+                                @foreach(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $weekday)
+                                    <div class="border-b border-r border-slate-200 py-2">{{ $weekday }}</div>
+                                @endforeach
+                            </div>
+                            <div id="appointment-calendar-days" class="grid grid-cols-7 border-l border-slate-200" aria-label="Appointment availability calendar"></div>
+                        </div>
+                    </div>
+
+                    <p id="appointment-calendar-selection" class="mt-3 min-h-5 text-sm font-semibold text-indigo-700" aria-live="polite"></p>
+                    <p id="appointment-calendar-status" class="mt-1 min-h-5 text-sm text-rose-600" role="status" aria-live="polite"></p>
+                </div>
+                <input id="appointment_date" name="appointment_date" type="hidden" value="{{ $appointmentDate }}" required>
+                <x-input-error :messages="$errors->get('appointment_date')" class="mt-2" />
+            </div>
+        @else
+            <div>
+                <x-input-label id="appointment_date_label" for="appointment_date" :value="$isGrooming ? __('Preferred Date') : __('Appointment Date')" />
+                <x-text-input id="appointment_date" name="appointment_date" type="date" class="mt-1 block w-full" :value="$appointmentDate" required />
+                <x-input-error :messages="$errors->get('appointment_date')" class="mt-2" />
+            </div>
+        @endif
 
         <div id="vaccination-fields" class="md:col-span-2 {{ $isVaccination ? '' : 'hidden' }}">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -205,31 +235,18 @@
 
         @if($isClient)
             @if($appointment)
-                <div>
-                    <x-input-label for="status" :value="__('Status')" />
-                    <select id="status" class="mt-1 block w-full rounded-md border-slate-300 bg-slate-100" disabled>
-                        @foreach($clientVisibleStatuses as $status)
-                            <option value="{{ $status }}" @selected($currentStatus === $status)>
-                                {{ ucfirst(str_replace('_', ' ', $status)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <input type="hidden" name="status" value="{{ $currentStatus }}">
-                    <x-input-error :messages="$errors->get('status')" class="mt-2" />
-                </div>
+                <input type="hidden" name="status" value="{{ $currentStatus }}">
             @else
                 <input type="hidden" name="status" value="{{ \App\Models\Appointment::STATUS_PENDING }}">
             @endif
         @else
             <div>
-                <x-input-label for="status" :value="__('Status')" />
-                <select id="status" name="status" class="mt-1 block w-full rounded-md border-slate-300">
-                    @foreach($staffStatuses as $status)
-                        <option value="{{ $status }}" @selected($currentStatus === $status)>
-                            {{ ucfirst(str_replace('_', ' ', $status)) }}
-                        </option>
-                    @endforeach
-                </select>
+                <x-input-label for="status" :value="__('Current Status')" />
+                <div id="status" class="mt-1 flex min-h-10 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700">
+                    {{ ucfirst(str_replace('_', ' ', $currentStatus)) }}
+                </div>
+                <input type="hidden" name="status" value="{{ $currentStatus }}">
+                <p class="mt-1 text-xs text-slate-500">Use the status action menu to approve or complete an appointment.</p>
                 <x-input-error :messages="$errors->get('status')" class="mt-2" />
             </div>
 
@@ -261,6 +278,200 @@
     (() => {
         const form = document.getElementById('appointment-form');
         if (!form) return;
+
+        const calendar = form.querySelector('#appointment-calendar');
+        const appointmentDateField = form.querySelector('#appointment_date');
+        if (calendar && appointmentDateField) {
+            const monthLabel = calendar.querySelector('#appointment-calendar-month');
+            const daysGrid = calendar.querySelector('#appointment-calendar-days');
+            const selectionLabel = calendar.querySelector('#appointment-calendar-selection');
+            const statusLabel = calendar.querySelector('#appointment-calendar-status');
+            const appointmentId = calendar.dataset.appointmentId;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const parseDate = (value) => {
+                if (!value) return null;
+                const [year, month, day] = value.split('-').map(Number);
+                return new Date(year, month - 1, day);
+            };
+
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const initialDate = parseDate(appointmentDateField.value);
+            let visibleMonth = new Date(
+                initialDate?.getFullYear() ?? today.getFullYear(),
+                initialDate?.getMonth() ?? today.getMonth(),
+                1
+            );
+            let bookedByDate = {};
+            let dailyLimit = Number(calendar.dataset.limit);
+            let availabilityLoaded = false;
+            let availabilityRequest = null;
+            let requestSequence = 0;
+
+            const updateSelectionLabel = () => {
+                const selectedDate = parseDate(appointmentDateField.value);
+                if (!selectedDate) {
+                    selectionLabel.textContent = 'Choose an available date to continue.';
+                    return;
+                }
+
+                if (!availabilityLoaded
+                    || selectedDate.getMonth() !== visibleMonth.getMonth()
+                    || selectedDate.getFullYear() !== visibleMonth.getFullYear()) {
+                    selectionLabel.textContent = `Selected: ${selectedDate.toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                    })}`;
+                    return;
+                }
+
+                const dateKey = formatDate(selectedDate);
+                const remaining = Math.max(0, dailyLimit - (bookedByDate[dateKey] ?? 0));
+                selectionLabel.textContent = `Selected: ${selectedDate.toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                })} · ${remaining} ${remaining === 1 ? 'slot' : 'slots'} remaining`;
+            };
+
+            const renderDays = () => {
+                monthLabel.textContent = visibleMonth.toLocaleDateString(undefined, {
+                    month: 'long',
+                    year: 'numeric',
+                });
+                daysGrid.replaceChildren();
+
+                const firstDay = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+                const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
+                const totalCells = Math.ceil((firstDay.getDay() + daysInMonth) / 7) * 7;
+
+                for (let cell = 0; cell < totalCells; cell += 1) {
+                    const dayNumber = cell - firstDay.getDay() + 1;
+                    const isCurrentMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+                    const date = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), dayNumber);
+                    const dateKey = formatDate(date);
+                    const booked = bookedByDate[dateKey] ?? 0;
+                    const remaining = Math.max(0, dailyLimit - booked);
+                    const isSelected = dateKey === appointmentDateField.value;
+                    const isPast = date < today && dateKey !== calendar.dataset.selectedDate;
+                    const isAvailable = isCurrentMonth && !isPast && remaining > 0;
+                    const button = document.createElement('button');
+
+                    button.type = 'button';
+                    button.disabled = !isAvailable && !isSelected;
+                    button.setAttribute('aria-label', isCurrentMonth
+                        ? `${date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}, ${remaining} ${remaining === 1 ? 'slot' : 'slots'} remaining`
+                        : 'Outside current month');
+                    button.className = [
+                        'flex min-h-16 flex-col items-start justify-between border-b border-r border-slate-200 p-1.5 text-left transition sm:min-h-20 sm:p-2',
+                        isCurrentMonth ? 'bg-white' : 'bg-slate-50 text-slate-300',
+                        isAvailable ? 'cursor-pointer hover:bg-indigo-50' : '',
+                        isPast || (isCurrentMonth && remaining === 0 && !isSelected) ? 'cursor-not-allowed bg-slate-50 text-slate-400' : '',
+                        isSelected ? 'bg-indigo-50 ring-2 ring-inset ring-indigo-500' : '',
+                    ].filter(Boolean).join(' ');
+
+                    if (isCurrentMonth) {
+                        const dayLabel = document.createElement('span');
+                        dayLabel.className = `text-xs font-semibold sm:text-sm ${isSelected ? 'text-indigo-700' : 'text-slate-700'}`;
+                        dayLabel.textContent = String(dayNumber);
+                        button.append(dayLabel);
+
+                        const availabilityLabel = document.createElement('span');
+                        availabilityLabel.className = `text-[0.6rem] font-medium leading-3 sm:text-[0.7rem] ${remaining > 0 ? 'text-slate-500' : 'text-rose-600'}`;
+                        availabilityLabel.textContent = remaining > 0
+                            ? `${remaining} ${remaining === 1 ? 'slot' : 'slots'} left`
+                            : 'Full';
+                        button.append(availabilityLabel);
+
+                        if (isAvailable || isSelected) {
+                            button.addEventListener('click', () => {
+                                appointmentDateField.value = dateKey;
+                                calendar.dataset.selectedDate = dateKey;
+                                statusLabel.textContent = '';
+                                updateSelectionLabel();
+                                renderDays();
+                            });
+                        }
+                    }
+
+                    daysGrid.append(button);
+                }
+
+                updateSelectionLabel();
+            };
+
+            const loadAvailability = async () => {
+                const sequence = ++requestSequence;
+                availabilityRequest?.abort();
+                availabilityRequest = new AbortController();
+                availabilityLoaded = false;
+                statusLabel.textContent = 'Loading availability…';
+                daysGrid.replaceChildren();
+                updateSelectionLabel();
+
+                const month = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, '0')}`;
+                const url = new URL(calendar.dataset.availabilityUrl, window.location.href);
+                url.searchParams.set('month', month);
+                if (appointmentId) url.searchParams.set('appointment_id', appointmentId);
+
+                try {
+                    const response = await fetch(url, {
+                        headers: { Accept: 'application/json' },
+                        signal: availabilityRequest.signal,
+                    });
+                    if (!response.ok) {
+                        throw new Error('Availability could not be loaded. Please try again.');
+                    }
+
+                    const data = await response.json();
+                    if (sequence !== requestSequence) return;
+
+                    bookedByDate = data.booked ?? {};
+                    dailyLimit = Number(data.limit) || dailyLimit;
+                    availabilityLoaded = true;
+                    statusLabel.textContent = '';
+                    renderDays();
+                } catch (error) {
+                    if (error.name === 'AbortError' || sequence !== requestSequence) return;
+                    daysGrid.replaceChildren();
+                    statusLabel.textContent = error.message || 'Availability could not be loaded. Please try again.';
+                    updateSelectionLabel();
+                }
+            };
+
+            calendar.querySelector('[data-calendar-previous]')?.addEventListener('click', () => {
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+                loadAvailability();
+            });
+            calendar.querySelector('[data-calendar-next]')?.addEventListener('click', () => {
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+                loadAvailability();
+            });
+            calendar.querySelector('[data-calendar-today]')?.addEventListener('click', () => {
+                visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                loadAvailability();
+            });
+
+            form.addEventListener('submit', (event) => {
+                if (!appointmentDateField.value) {
+                    event.preventDefault();
+                    statusLabel.textContent = 'Please select an available appointment date.';
+                    calendar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+
+            loadAvailability();
+        }
 
         const typeSelect = form.querySelector('#appointment_type');
         const hiddenTypeInput = form.querySelector('input[name="type"]');

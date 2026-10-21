@@ -15,9 +15,9 @@
     </div>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <x-ui.stat-card label="Age" :value="$pet->display_age ?? 'N/A'" tone="brand" />
-        <x-ui.stat-card label="Appointments" :value="$pet->appointments->count()" tone="slate" />
-        <x-ui.stat-card label="Vaccinations" :value="$pet->vaccinations->count()" tone="accent" />
+        <x-ui.stat-card label="Age" :value="$pet->display_age ?? 'N/A'" />
+        <x-ui.stat-card label="Appointments" :value="$pet->appointments->count()" icon="calendar" />
+        <x-ui.stat-card label="Vaccinations" :value="$pet->vaccinations->count()" icon="syringe" />
     </section>
 
     @if(auth()->user()?->isStaffOrAdmin())
@@ -86,11 +86,11 @@
                 description="Vaccinations, checkups, grooming, and related updates will appear here."
             />
         @else
-            <div class="relative ml-3 border-l-2 border-blue-100 pl-6">
+            <div class="relative ml-3 border-l-2 border-indigo-100 pl-6">
                 <div class="space-y-5">
                     @foreach($timelineEntries as $entry)
                         <article class="relative rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <span class="absolute -left-[1.9rem] top-5 h-3 w-3 rounded-full bg-blue-500 ring-4 ring-white"></span>
+                            <span class="absolute -left-[1.9rem] top-5 h-3 w-3 rounded-full bg-indigo-500 ring-4 ring-white"></span>
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase {{ $entry['type_badge_class'] }}">
                                     {{ $entry['type'] }}
@@ -125,9 +125,7 @@
                                 <p class="text-sm font-semibold text-slate-800">{{ $appointment->purpose }}</p>
                                 <p class="text-xs text-slate-500">{{ optional($appointment->appointment_date)->format('M d, Y') }}</p>
                             </div>
-                            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-600">
-                                {{ $appointment->status }}
-                            </span>
+                            <x-ui.appointment-status-badge :appointment="$appointment" />
                         </div>
                     @endforeach
                 </div>

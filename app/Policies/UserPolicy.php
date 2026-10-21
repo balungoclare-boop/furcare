@@ -31,8 +31,4 @@ class UserPolicy
         return $user->is($model);
     }
 
-    public function delete(User $user, User $model): bool
-    {
-        return false;
-    }
 }

@@ -31,31 +31,24 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($users as $user)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3 font-semibold text-slate-800">{{ $user->name }}</td>
                                 <td class="px-4 py-3">{{ $user->email }}</td>
                                 <td class="px-4 py-3 uppercase">{{ str_replace('_', ' ', $user->role) }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $user->is_active ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700' }}">
+                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $user->is_active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-700' }}">
                                         {{ $user->is_active ? 'Active' : 'Inactive' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">{{ $user->pets_count }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $user->must_change_password ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700' }}">
+                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $user->must_change_password ? 'bg-jade-100 text-jade-700' : 'bg-indigo-100 text-indigo-700' }}">
                                         {{ $user->must_change_password ? 'Yes' : 'No' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         <x-ui.button :href="route('admin.users.edit', $user)" variant="secondary">Edit</x-ui.button>
-                                        <form method="POST" action="{{ route('admin.users.destroy', $user) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <x-ui.button variant="danger" onclick="return confirm('Delete this user?')">
-                                                Delete
-                                            </x-ui.button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

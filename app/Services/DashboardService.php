@@ -57,16 +57,7 @@ class DashboardService
             ->orderBy('id')
             ->get();
 
-        $adminStaff = $operationalStaff->firstWhere('role', User::ROLE_ADMIN);
-        $veterinaryStaff = $operationalStaff->first(
-            fn (User $staff): bool => $staff->role === User::ROLE_VETERINARY_STAFF
-                && strcasecmp($staff->name, 'Admin') !== 0
-        ) ?? $operationalStaff->firstWhere('role', User::ROLE_VETERINARY_STAFF);
-
-        $staffPerformance = collect([$adminStaff, $veterinaryStaff])
-            ->filter()
-            ->unique('id')
-            ->values()
+        $staffPerformance = $operationalStaff
             ->map(fn (User $staff) => $this->buildStaffPerformanceForUser($staff));
 
         return [
@@ -105,10 +96,14 @@ class DashboardService
             ],
             'vaccinationAppointments' => (clone $appointmentsForTables)
                 ->where('type', Appointment::TYPE_VACCINATION)
+                ->where('status', Appointment::STATUS_PENDING)
+                ->whereNull('accepted_at')
                 ->paginate(8, ['*'], 'vaccination_page')
                 ->withQueryString(),
             'groomingAppointments' => (clone $appointmentsForTables)
                 ->where('type', Appointment::TYPE_GROOMING)
+                ->where('status', Appointment::STATUS_PENDING)
+                ->whereNull('accepted_at')
                 ->paginate(8, ['*'], 'grooming_page')
                 ->withQueryString(),
             'vaccinationChart' => $this->buildTypeChartData($vaccinationAppointmentSeries->all()),
@@ -218,10 +213,14 @@ class DashboardService
             ],
             'vaccinationAppointments' => (clone $appointmentsForTables)
                 ->where('type', Appointment::TYPE_VACCINATION)
+                ->where('status', Appointment::STATUS_PENDING)
+                ->whereNull('accepted_at')
                 ->paginate(8, ['*'], 'vaccination_page')
                 ->withQueryString(),
             'groomingAppointments' => (clone $appointmentsForTables)
                 ->where('type', Appointment::TYPE_GROOMING)
+                ->where('status', Appointment::STATUS_PENDING)
+                ->whereNull('accepted_at')
                 ->paginate(8, ['*'], 'grooming_page')
                 ->withQueryString(),
             'vaccinationChart' => $this->buildTypeChartData($vaccinationAppointmentSeries->all()),
@@ -256,7 +255,8 @@ class DashboardService
                 'myPets' => Pet::query()->ownedBy($user)->count(),
                 'myAppointments' => (clone $appointments)->count(),
                 'pendingAppointments' => (clone $appointments)
-                    ->where('status', 'pending')
+                    ->where('status', Appointment::STATUS_PENDING)
+                    ->whereNull('accepted_at')
                     ->count(),
                 'upcomingVaccinations' => (clone $vaccinations)
                     ->whereDate('next_due_date', '>=', now()->toDateString())
@@ -268,6 +268,11 @@ class DashboardService
             'upcomingAppointments' => (clone $appointments)
                 ->with('pet:id,pet_name,user_id')
                 ->whereDate('appointment_date', '>=', now()->toDateString())
+                ->whereNotIn('status', [
+                    Appointment::STATUS_COMPLETED,
+                    Appointment::STATUS_CANCELLED,
+                    Appointment::STATUS_REJECTED,
+                ])
                 ->orderBy('appointment_date')
                 ->limit(8)
                 ->get(),
@@ -292,7 +297,7 @@ class DashboardService
         $labels = [];
         $totals = [];
 
-        foreach (range(6, 0) as $dayOffset) {
+        foreach (range(0, 6) as $dayOffset) {
             $day = Carbon::now()->subDays($dayOffset)->toDateString();
             $labels[] = Carbon::parse($day)->format('M d');
             $totals[] = (int) ($series[$day] ?? 0);

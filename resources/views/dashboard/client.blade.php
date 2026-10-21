@@ -1,20 +1,20 @@
 <x-app-layout>
-    <section class="rounded-3xl bg-gradient-to-r from-blue-700 via-blue-500 to-pink-400 p-6 text-white shadow-xl animate-rise">
-        <p class="text-xs uppercase tracking-[0.25em] text-blue-100">Client Dashboard</p>
+    <section class="rounded-3xl bg-gradient-to-r from-indigo-700 via-indigo-500 to-jade-400 p-6 text-white shadow-xl animate-rise">
+        <p class="text-xs uppercase tracking-[0.25em] text-indigo-100">Client Dashboard</p>
         <h1 class="mt-2 text-3xl font-extrabold text-white">My Pet Care Portal</h1>
-        <p class="mt-2 text-sm text-blue-50">Monitor pets, appointments, and upcoming vaccination reminders.</p>
+        <p class="mt-2 text-sm text-indigo-50">Monitor pets, appointments, and upcoming vaccination reminders.</p>
     </section>
 
-    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <x-ui.stat-card label="My Pets" :value="$metrics['myPets']" tone="brand" />
-        <x-ui.stat-card label="Appointments" :value="$metrics['myAppointments']" tone="slate" />
-        <x-ui.stat-card label="Pending Requests" :value="$metrics['pendingAppointments']" tone="accent" />
-        <x-ui.stat-card label="Vaccine Reminders" :value="$metrics['upcomingVaccinations']" tone="pink" />
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <x-ui.stat-card label="My Pets" :value="$metrics['myPets']" icon="pets" />
+        <x-ui.stat-card label="Appointments" :value="$metrics['myAppointments']" icon="calendar" />
+        <x-ui.stat-card label="Pending Requests" :value="$metrics['pendingAppointments']" icon="clock" />
+        <x-ui.stat-card label="Vaccine Reminders" :value="$metrics['upcomingVaccinations']" icon="syringe" />
     </section>
 
     <section>
         <x-ui.card title="Quick Access">
-            <div class="grid grid-cols-1 gap-3">
+            <div class="flex flex-wrap gap-3">
                 <x-ui.button :href="route('pets.create')">Register Pet</x-ui.button>
                 <x-ui.button :href="route('appointments.create')" variant="secondary">Request Appointment</x-ui.button>
                 <x-ui.button :href="route('appointments.grooming.create')" variant="secondary">Request Grooming Appointment</x-ui.button>
@@ -45,15 +45,13 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($upcomingAppointments as $appointment)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3">{{ optional($appointment->appointment_date)->format('M d, Y') }}</td>
                                 <td class="px-4 py-3 font-semibold text-slate-700">{{ $appointment->display_pet_name }}</td>
                                 <td class="px-4 py-3">{{ $appointment->type_label }}</td>
                                 <td class="px-4 py-3">{{ $appointment->display_purpose }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-600">
-                                        {{ $appointment->status_label }}
-                                    </span>
+                                    <x-ui.appointment-status-badge :appointment="$appointment" />
                                 </td>
                             </tr>
                         @endforeach

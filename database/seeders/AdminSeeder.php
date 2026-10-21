@@ -10,23 +10,18 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::query()
-            ->whereIn('email', ['admin@vetclinic.local', 'superadmin@vetclinic.local'])
-            ->first();
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
 
-        if ($admin) {
-            $admin->update([
-                'email' => 'admin@vetclinic.local',
-                'name' => 'Admin',
-                'password' => Hash::make('Admin@123'),
-                'role' => User::ROLE_ADMIN,
-                'is_active' => true,
-                'must_change_password' => true,
-            ]);
-        } else {
+        $adminExists = User::query()
+            ->whereIn('email', ['admin@vetclinic.local', 'superadmin@vetclinic.local'])
+            ->exists();
+
+        if (! $adminExists) {
             User::create([
-                'email' => 'admin@vetclinic.local',
                 'name' => 'Admin',
+                'email' => 'admin@vetclinic.local',
                 'password' => Hash::make('Admin@123'),
                 'role' => User::ROLE_ADMIN,
                 'is_active' => true,
@@ -34,23 +29,14 @@ class AdminSeeder extends Seeder
             ]);
         }
 
-        $staff = User::query()
+        $staffExists = User::query()
             ->whereIn('email', ['staff@vetclinic.local', 'vetstaff@vetclinic.local'])
-            ->first();
+            ->exists();
 
-        if ($staff) {
-            $staff->update([
-                'email' => 'staff@vetclinic.local',
-                'name' => 'Veterinary Staff',
-                'password' => Hash::make('Staff@123'),
-                'role' => User::ROLE_VETERINARY_STAFF,
-                'is_active' => true,
-                'must_change_password' => true,
-            ]);
-        } else {
+        if (! $staffExists) {
             User::create([
-                'email' => 'staff@vetclinic.local',
                 'name' => 'Veterinary Staff',
+                'email' => 'staff@vetclinic.local',
                 'password' => Hash::make('Staff@123'),
                 'role' => User::ROLE_VETERINARY_STAFF,
                 'is_active' => true,

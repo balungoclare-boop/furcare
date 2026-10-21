@@ -75,11 +75,11 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($auditLogs as $log)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3">{{ optional($log->created_at)->format('M d, Y h:i A') }}</td>
                                 <td class="px-4 py-3">{{ $log->user?->name ?? 'System' }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase text-blue-700">
+                                    <span class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase text-indigo-700">
                                         {{ $log->event_type }}
                                     </span>
                                 </td>

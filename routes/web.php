@@ -8,6 +8,7 @@ use App\Http\Controllers\ForcePasswordController;
 use App\Http\Controllers\HospitalizationController;
 use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -50,13 +51,15 @@ Route::middleware(['preventBackHistory', 'auth'])->group(function (): void {
         ->name('password.force.update');
 
     Route::get('/dashboard', [DashboardController::class, 'redirectByRole'])->name('dashboard');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])
+        ->name('notifications.read');
 
     Route::prefix('admin')
         ->name('admin.')
         ->middleware('role:admin')
         ->group(function (): void {
             Route::get('/dashboard', [DashboardController::class, 'admin'])->name('dashboard');
-            Route::resource('users', UserController::class)->except('show');
+            Route::resource('users', UserController::class)->except(['show', 'destroy']);
             Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         });
 
@@ -76,10 +79,18 @@ Route::middleware(['preventBackHistory', 'auth'])->group(function (): void {
 
     Route::middleware('role:admin|veterinary_staff|client')
         ->group(function (): void {
-            Route::resource('pets', PetController::class);
-            Route::resource('appointments', AppointmentController::class)->except('show');
+            Route::get('appointments/availability', [AppointmentController::class, 'availability'])
+                ->name('appointments.availability');
+            Route::resource('pets', PetController::class)->except('destroy');
+            Route::resource('appointments', AppointmentController::class)->except(['show', 'destroy']);
             Route::get('appointments/completed', [AppointmentController::class, 'completed'])
                 ->name('appointments.completed');
+            Route::get('appointments/accepted', [AppointmentController::class, 'accepted'])
+                ->name('appointments.accepted');
+            Route::match(['post', 'patch'], 'appointments/{appointment}/approve', [AppointmentController::class, 'approve'])
+                ->name('appointments.approve');
+            Route::match(['post', 'patch'], 'appointments/{appointment}/complete', [AppointmentController::class, 'complete'])
+                ->name('appointments.complete');
             Route::match(['post', 'patch'], 'appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])
                 ->name('appointments.cancel');
 
@@ -97,19 +108,19 @@ Route::middleware(['preventBackHistory', 'auth'])->group(function (): void {
 
     Route::middleware('role:admin|veterinary_staff')
         ->group(function (): void {
-            Route::resource('hospitalizations', HospitalizationController::class);
+            Route::resource('hospitalizations', HospitalizationController::class)->except('destroy');
             Route::post('hospitalizations/{hospitalization}/progress-notes', [HospitalizationController::class, 'storeProgressNote'])
                 ->name('hospitalizations.progress-notes.store');
-            Route::resource('medicines', MedicineController::class);
+            Route::resource('medicines', MedicineController::class)->except('destroy');
             Route::resource('announcements', AnnouncementController::class)
-                ->except('show');
+                ->except(['show', 'destroy']);
 
             Route::resource('vaccinations', VaccinationController::class)
-                ->except(['index']);
+                ->except(['index', 'destroy']);
 
             Route::get('reports/print', [ReportController::class, 'generateReport'])
                 ->name('reports.print');
-            Route::resource('reports', ReportController::class);
+            Route::resource('reports', ReportController::class)->except('destroy');
 
             Route::post('medical-records', [MedicalRecordController::class, 'store'])
                 ->name('medical-records.store');
@@ -117,7 +128,6 @@ Route::middleware(['preventBackHistory', 'auth'])->group(function (): void {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';

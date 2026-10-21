@@ -11,7 +11,7 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            <x-ui.button :href="route('appointments.index')" variant="secondary">Back to Active Appointments</x-ui.button>
+            <x-ui.button :href="route('appointments.index')" variant="secondary">Back to Appointments</x-ui.button>
             @if(! $isClient)
                 <x-ui.button :href="route('appointments.create')">Add Appointment</x-ui.button>
             @endif
@@ -19,10 +19,28 @@
     </div>
 
     <x-ui.card>
+        <form method="GET" action="{{ route('appointments.completed') }}" class="mb-5 flex flex-wrap items-end gap-2">
+            <div class="min-w-[16rem] flex-1">
+                <label for="completed-appointment-search" class="sr-only">Search completed appointments</label>
+                <x-text-input
+                    id="completed-appointment-search"
+                    name="search"
+                    type="search"
+                    class="block w-full"
+                    :value="request('search')"
+                    placeholder="Search pet, owner, purpose, type, or date"
+                />
+            </div>
+            <x-ui.button type="submit">Search</x-ui.button>
+            @if(request()->filled('search'))
+                <x-ui.button :href="route('appointments.completed')" variant="secondary">Clear</x-ui.button>
+            @endif
+        </form>
+
         @if($appointments->isEmpty())
             <x-ui.empty-state
-                title="No completed appointments yet."
-                description="Completed appointments will appear here once finalized."
+                :title="request()->filled('search') ? 'No matching completed appointments found.' : 'No completed appointments yet.'"
+                :description="request()->filled('search') ? 'Try another pet name, owner, purpose, type, or date.' : 'Completed appointments will appear here once finalized.'"
             />
         @else
             <div class="table-shell overflow-x-auto">

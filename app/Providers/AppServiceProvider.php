@@ -41,14 +41,38 @@ class AppServiceProvider extends ServiceProvider
             $user = auth()->user();
 
             $pendingAppointments = 0;
+            $clientPendingAppointments = 0;
+            $unreadNotificationsCount = 0;
+            $recentNotifications = collect();
 
             if ($user && $user->isStaffOrAdmin()) {
                 $pendingAppointments = Appointment::query()
                     ->where('status', Appointment::STATUS_PENDING)
+                    ->whereNull('accepted_at')
                     ->count();
             }
 
-            $view->with('pendingAppointments', $pendingAppointments);
+            if ($user && $user->isClient()) {
+                $clientPendingAppointments = $user->appointments()
+                    ->where('status', Appointment::STATUS_PENDING)
+                    ->whereNull('accepted_at')
+                    ->count();
+            }
+
+            if ($user) {
+                $unreadNotificationsCount = $user->unreadNotifications()->count();
+                $recentNotifications = $user->notifications()
+                    ->latest()
+                    ->limit(5)
+                    ->get();
+            }
+
+            $view->with(compact(
+                'pendingAppointments',
+                'clientPendingAppointments',
+                'unreadNotificationsCount',
+                'recentNotifications'
+            ));
         });
     }
 }

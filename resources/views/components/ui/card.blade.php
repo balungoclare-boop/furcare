@@ -1,6 +1,11 @@
-@props(['title' => null, 'subtitle' => null])
+@props(['title' => null, 'subtitle' => null, 'animated' => true])
 
-<section {{ $attributes->merge(['class' => 'rounded-2xl border border-blue-100 bg-white/95 p-5 shadow-sm hover-lift animate-fade-in']) }}>
+@php
+    $baseClasses = 'rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm';
+    $motionClasses = $animated ? ' hover-lift animate-fade-in' : '';
+@endphp
+
+<section {{ $attributes->merge(['class' => $baseClasses.$motionClasses]) }}>
     @if($title || $subtitle)
         <header class="mb-4">
             @if($title)

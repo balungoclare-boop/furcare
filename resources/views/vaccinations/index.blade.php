@@ -3,10 +3,18 @@
         $canManageVaccinations = auth()->user()?->isStaffOrAdmin();
         $statusFilter = $statusFilter ?? 'all';
         $filters = [
-            ['label' => 'All', 'value' => 'all'],
-            ['label' => 'Due Soon', 'value' => 'due_soon'],
-            ['label' => 'Overdue', 'value' => 'overdue'],
+            ['label' => 'All', 'value' => 'all', 'count' => $vaccinationCounts['all']],
+            ['label' => 'Due Soon', 'value' => 'due_soon', 'count' => $vaccinationCounts['due_soon']],
+            ['label' => 'Overdue', 'value' => 'overdue', 'count' => $vaccinationCounts['overdue']],
         ];
+        $filters = array_map(function ($filter) {
+            $filter['href'] = route('vaccinations.index', array_filter([
+                'status' => $filter['value'] === 'all' ? null : $filter['value'],
+                'search' => request('search'),
+            ]));
+
+            return $filter;
+        }, $filters);
     @endphp
 
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -17,20 +25,7 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            <div class="inline-flex overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-                @foreach($filters as $filter)
-                    @php
-                        $isActive = $statusFilter === $filter['value'];
-                        $routeParameters = $filter['value'] === 'all' ? [] : ['status' => $filter['value']];
-                    @endphp
-                    <a
-                        href="{{ route('vaccinations.index', $routeParameters) }}"
-                        class="rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] transition {{ $isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100' }}"
-                    >
-                        {{ $filter['label'] }}
-                    </a>
-                @endforeach
-            </div>
+            <x-ui.tabs :active="$statusFilter" :items="$filters" />
             @if($canManageVaccinations)
                 <x-ui.button :href="route('vaccinations.create')">Add Vaccination</x-ui.button>
             @endif
@@ -38,17 +33,43 @@
     </div>
 
     <x-ui.card>
+        <form method="GET" action="{{ route('vaccinations.index') }}" class="mb-5 flex flex-wrap items-end gap-2">
+            @if($statusFilter !== 'all')
+                <input type="hidden" name="status" value="{{ $statusFilter }}">
+            @endif
+            <div class="min-w-[16rem] flex-1">
+                <label for="vaccination-search" class="sr-only">Search vaccinations</label>
+                <x-text-input
+                    id="vaccination-search"
+                    name="search"
+                    type="search"
+                    class="block w-full"
+                    :value="request('search')"
+                    placeholder="Search pet, owner, vaccine, or due date"
+                />
+            </div>
+            <x-ui.button type="submit">Search</x-ui.button>
+            @if(request()->filled('search'))
+                <x-ui.button
+                    :href="route('vaccinations.index', $statusFilter === 'all' ? [] : ['status' => $statusFilter])"
+                    variant="secondary"
+                >
+                    Clear
+                </x-ui.button>
+            @endif
+        </form>
+
         @if($vaccinations->isEmpty())
             @php
                 $emptyTitle = match ($statusFilter) {
                     'overdue' => 'No overdue vaccination records.',
                     'due_soon' => 'No due-soon vaccination records.',
-                    default => 'No vaccination records found.',
+                    default => request()->filled('search') ? 'No matching vaccination records found.' : 'No vaccination records found.',
                 };
                 $emptyDescription = match ($statusFilter) {
                     'overdue' => 'No pets are currently marked as overdue.',
                     'due_soon' => 'No pets are due for vaccination within the next 7 days.',
-                    default => 'Create vaccination entries to track pet immunization status.',
+                    default => request()->filled('search') ? 'Try another pet name, owner, vaccine, or due date.' : 'Create vaccination entries to track pet immunization status.',
                 };
             @endphp
             <x-ui.empty-state
@@ -74,7 +95,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($vaccinations as $vaccination)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3 font-semibold text-slate-800">{{ $vaccination->display_pet_name }}</td>
                                 <td class="px-4 py-3">{{ $vaccination->vaccine_name }}</td>
                                 <td class="px-4 py-3">{{ optional($vaccination->date_given)->format('M d, Y') }}</td>
@@ -109,13 +130,6 @@
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         @if($canManageVaccinations)
                                             <x-ui.button :href="route('vaccinations.show', $vaccination)" variant="secondary">View</x-ui.button>
-                                            <form method="POST" action="{{ route('vaccinations.destroy', $vaccination) }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-ui.button variant="danger" onclick="return confirm('Delete this vaccination record?')">
-                                                    Delete
-                                                </x-ui.button>
-                                            </form>
                                         @endif
                                     </div>
                                 </td>

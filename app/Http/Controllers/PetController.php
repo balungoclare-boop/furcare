@@ -9,6 +9,7 @@ use App\Models\Pet;
 use App\Models\User;
 use App\Services\ActivityLogService;
 use App\Services\AuditLogService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,11 +29,25 @@ class PetController extends Controller
     {
         $this->authorize('viewAny', Pet::class);
 
-        $pets = Pet::query()
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+        $search = trim($validated['search'] ?? '');
+
+        $petsQuery = Pet::query()
             ->withCount(['appointments', 'vaccinations'])
-            ->ownedBy($request->user())
-            ->latest()
-            ->paginate(10);
+            ->ownedBy($request->user());
+
+        if ($search !== '') {
+            $petsQuery->where(function ($query) use ($search): void {
+                $query->where('pet_name', 'like', '%'.$search.'%')
+                    ->orWhere('owner_name', 'like', '%'.$search.'%')
+                    ->orWhere('species', 'like', '%'.$search.'%')
+                    ->orWhere('breed', 'like', '%'.$search.'%');
+            });
+        }
+
+        $pets = $petsQuery->latest()->paginate(10)->withQueryString();
 
         return view('pets.index', compact('pets'));
     }
@@ -58,7 +73,12 @@ class PetController extends Controller
     {
         $this->authorize('create', Pet::class);
 
-        $payload = array_merge($request->validated(), $this->validateAgeInput($request));
+        $payload = $request->validated();
+        if ($request->exists('age_is_approximate')) {
+            $payload = $this->prepareAgePayload($payload);
+        } else {
+            $payload = array_merge($payload, $this->validateAgeInput($request));
+        }
         $ownerUserId = (int) ($payload['owner_user_id'] ?? 0);
         unset($payload['owner_user_id']);
 
@@ -89,8 +109,13 @@ class PetController extends Controller
             sprintf('Created pet profile for %s.', $pet->pet_name)
         );
 
-        return redirect()
-            ->route('pets.edit', $pet)
+        $redirect = match ($request->input('submit_action', 'save')) {
+            'save_add_another' => redirect()->route('pets.create'),
+            'save_book_appointment' => redirect()->route('appointments.create', ['pet_id' => $pet->id]),
+            default => redirect()->route('pets.edit', $pet),
+        };
+
+        return $redirect
             ->with('success', 'Pet created successfully.');
     }
 
@@ -137,6 +162,8 @@ class PetController extends Controller
         $this->authorize('update', $pet);
 
         $payload = array_merge($request->validated(), $this->validateAgeInput($request));
+        $payload['age_is_approximate'] = empty($payload['date_of_birth']);
+        $payload = $this->prepareAgePayload($payload);
         $ownerUserId = (int) ($payload['owner_user_id'] ?? 0);
         unset($payload['owner_user_id']);
 
@@ -169,32 +196,33 @@ class PetController extends Controller
             ->with('success', 'Pet updated successfully.');
     }
 
-    public function destroy(Pet $pet): RedirectResponse
-    {
-        $this->authorize('delete', $pet);
-
-        $petId = $pet->id;
-        $petName = $pet->pet_name;
-        $pet->delete();
-        $this->auditLogService->log(
-            auth()->user(),
-            'deleted',
-            'pet',
-            $petId,
-            sprintf('Deleted pet profile for %s.', $petName)
-        );
-
-        return redirect()
-            ->route('pets.index')
-            ->with('success', 'Pet deleted successfully.');
-    }
-
     private function validateAgeInput(Request $request): array
     {
         return $request->validate([
             'age_value' => ['required', 'integer', 'min:0', 'max:240'],
             'age_type' => ['required', Rule::in(['month', 'year'])],
         ]);
+    }
+
+    private function prepareAgePayload(array $payload): array
+    {
+        $isApproximate = (bool) ($payload['age_is_approximate'] ?? false);
+        unset($payload['age_is_approximate']);
+
+        if ($isApproximate) {
+            $payload['date_of_birth'] = null;
+            $payload['age'] = $payload['age_type'] === 'year'
+                ? (int) $payload['age_value']
+                : intdiv((int) $payload['age_value'], 12);
+
+            return $payload;
+        }
+
+        $payload['age'] = Carbon::parse($payload['date_of_birth'])->age;
+        $payload['age_value'] = null;
+        $payload['age_type'] = null;
+
+        return $payload;
     }
 
     private function buildTimelineEntries(Pet $pet): Collection
@@ -205,7 +233,7 @@ class PetController extends Controller
             $timeline->push([
                 'date' => $vaccination->date_given,
                 'type' => 'Vaccination',
-                'type_badge_class' => 'bg-blue-100 text-blue-700',
+                'type_badge_class' => 'bg-indigo-100 text-indigo-700',
                 'description' => sprintf(
                     '%s%s',
                     $vaccination->vaccine_name,
@@ -226,10 +254,10 @@ class PetController extends Controller
                 };
 
             $typeBadgeClass = match ($type) {
-                'Checkup' => 'bg-pink-100 text-pink-700',
+                'Checkup' => 'bg-jade-100 text-jade-700',
                 'Grooming' => 'bg-green-100 text-green-700',
                 'Emergency' => 'bg-rose-100 text-rose-700',
-                default => 'bg-blue-100 text-blue-700',
+                default => 'bg-indigo-100 text-indigo-700',
             };
 
             $timeline->push([
@@ -246,7 +274,7 @@ class PetController extends Controller
             $timeline->push([
                 'date' => $record->visit_date,
                 'type' => 'Checkup',
-                'type_badge_class' => 'bg-pink-100 text-pink-700',
+                'type_badge_class' => 'bg-jade-100 text-jade-700',
                 'description' => $record->diagnosis
                     ? 'Consultation: '.$record->diagnosis
                     : 'Consultation record updated',

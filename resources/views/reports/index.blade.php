@@ -29,7 +29,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white">
                         @foreach($reports as $report)
-                            <tr class="transition-colors hover:bg-pink-50/60">
+                            <tr class="transition-colors hover:bg-jade-50/60">
                                 <td class="px-4 py-3 font-semibold text-slate-800">{{ $report->title }}</td>
                                 <td class="px-4 py-3 uppercase">{{ $report->scope }}</td>
                                 <td class="px-4 py-3">
@@ -46,13 +46,6 @@
                                     <div class="flex flex-wrap items-center justify-end gap-2">
                                         <x-ui.button :href="route('reports.show', $report)" variant="secondary">View</x-ui.button>
                                         <x-ui.button :href="route('reports.edit', $report)" variant="secondary">Edit</x-ui.button>
-                                        <form method="POST" action="{{ route('reports.destroy', $report) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <x-ui.button variant="danger" onclick="return confirm('Delete this report?')">
-                                                Delete
-                                            </x-ui.button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>

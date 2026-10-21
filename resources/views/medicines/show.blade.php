@@ -11,9 +11,9 @@
     </div>
 
     <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <x-ui.stat-card label="Stock Quantity" :value="$medicine->stock_quantity" tone="brand" />
-        <x-ui.stat-card label="Low Stock Threshold" :value="$medicine->low_stock_threshold" tone="soft" />
-        <x-ui.stat-card label="Expiration" :value="optional($medicine->expiration_date)->format('M d, Y') ?: 'N/A'" tone="accent" />
+        <x-ui.stat-card label="Stock Quantity" :value="$medicine->stock_quantity" icon="medicine" />
+        <x-ui.stat-card label="Low Stock Threshold" :value="$medicine->low_stock_threshold" />
+        <x-ui.stat-card label="Expiration" :value="optional($medicine->expiration_date)->format('M d, Y') ?: 'N/A'" icon="clock" />
     </section>
 
     <x-ui.card title="Medicine Information">

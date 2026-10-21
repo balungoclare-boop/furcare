@@ -6,11 +6,18 @@ use App\Http\Requests\AppointmentStoreRequest;
 use App\Http\Requests\AppointmentUpdateRequest;
 use App\Models\Appointment;
 use App\Models\Pet;
+use App\Notifications\AppointmentAcceptedNotification;
+use App\Notifications\AppointmentStatusNotification;
 use App\Services\ActivityLogService;
+use App\Services\AppointmentAvailabilityService;
 use App\Services\AuditLogService;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
@@ -18,18 +25,52 @@ class AppointmentController extends Controller
 {
     public function __construct(
         private readonly ActivityLogService $activityLogService,
-        private readonly AuditLogService $auditLogService
+        private readonly AuditLogService $auditLogService,
+        private readonly AppointmentAvailabilityService $appointmentAvailabilityService
     ) {
+    }
+
+    public function availability(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Appointment::class);
+
+        $validated = $request->validate([
+            'month' => ['required', 'date_format:Y-m'],
+            'appointment_id' => ['nullable', 'integer'],
+        ]);
+
+        $excludeAppointmentId = null;
+        if (! empty($validated['appointment_id'])) {
+            $appointment = Appointment::query()->findOrFail($validated['appointment_id']);
+            $this->authorize('update', $appointment);
+            $excludeAppointmentId = $appointment->id;
+        }
+
+        $month = CarbonImmutable::createFromFormat('!Y-m', $validated['month']);
+        $start = $month->startOfMonth();
+        $end = $month->endOfMonth();
+
+        return response()->json([
+            'limit' => AppointmentAvailabilityService::DAILY_LIMIT,
+            'booked' => $this->appointmentAvailabilityService->bookedAppointmentsBetween(
+                $start,
+                $end,
+                $excludeAppointmentId
+            ),
+        ]);
     }
 
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Appointment::class);
 
+        $search = $this->validatedSearch($request);
         $appointments = Appointment::query()
             ->with('pet:id,pet_name,user_id')
             ->ownedBy($request->user())
-            ->whereIn('status', [Appointment::STATUS_PENDING, Appointment::STATUS_APPROVED])
+            ->where('status', Appointment::STATUS_PENDING)
+            ->whereNull('accepted_at')
+            ->when($search !== '', fn (Builder $query) => $this->applyAppointmentSearch($query, $search))
             ->latest('created_at')
             ->latest('id')
             ->paginate(10)
@@ -42,16 +83,37 @@ class AppointmentController extends Controller
     {
         $this->authorize('viewAny', Appointment::class);
 
+        $search = $this->validatedSearch($request);
         $appointments = Appointment::query()
             ->with('pet:id,pet_name,user_id')
             ->ownedBy($request->user())
             ->where('status', Appointment::STATUS_COMPLETED)
+            ->when($search !== '', fn (Builder $query) => $this->applyAppointmentSearch($query, $search))
             ->latest('appointment_date')
             ->latest('id')
             ->paginate(10)
             ->withQueryString();
 
         return view('appointments.completed', compact('appointments'));
+    }
+
+    public function accepted(Request $request): View
+    {
+        $this->authorize('viewAny', Appointment::class);
+
+        $search = $this->validatedSearch($request);
+        $appointments = Appointment::query()
+            ->with('pet:id,pet_name,user_id')
+            ->ownedBy($request->user())
+            ->where('status', Appointment::STATUS_PENDING)
+            ->whereNotNull('accepted_at')
+            ->when($search !== '', fn (Builder $query) => $this->applyAppointmentSearch($query, $search))
+            ->latest('appointment_date')
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('appointments.accepted', compact('appointments'));
     }
 
     public function create(Request $request): View
@@ -98,29 +160,15 @@ class AppointmentController extends Controller
         if ($petId) {
             $pet = Pet::query()->findOrFail($petId);
             $this->authorize('view', $pet);
-        } elseif ($request->user()->isStaffOrAdmin()) {
-            $pet = Pet::query()->create([
-                'user_id' => null,
-                'owner_name' => trim((string) ($payload['owner_name'] ?? 'Walk-in Client')),
-                'contact_number' => trim((string) ($payload['contact_number'] ?? 'N/A')),
-                'pet_name' => trim((string) ($payload['pet_name'] ?? 'Walk-in Pet')),
-                'species' => 'Unknown',
-                'breed' => null,
-                'sex' => null,
-                'age' => null,
-                'age_value' => null,
-                'age_type' => null,
-            ]);
         }
 
-        if (! $pet) {
+        if (! $pet && ! $request->user()->isStaffOrAdmin()) {
             return back()
                 ->withInput()
                 ->with('error', 'Please select a pet or provide walk-in pet details.');
         }
 
-        $payload['pet_id'] = $pet->id;
-        unset($payload['pet_name'], $payload['owner_name'], $payload['contact_number']);
+        $payload['pet_id'] = $pet?->id;
         $payload['type'] = $payload['type'] ?? Appointment::TYPE_VACCINATION;
 
         if ($payload['type'] === Appointment::TYPE_GROOMING && ! $request->user()->isClient()) {
@@ -144,7 +192,7 @@ class AppointmentController extends Controller
             }
         }
 
-        $ownerId = $request->user()->isStaffOrAdmin() ? ($pet->user_id ?? null) : $request->user()->id;
+        $ownerId = $request->user()->isStaffOrAdmin() ? $pet?->user_id : $request->user()->id;
         $payload = $this->normalizeAppointmentPayload($request, $payload);
 
         if ($this->isDuplicateAppointmentSubmission($ownerId, $payload)) {
@@ -159,10 +207,42 @@ class AppointmentController extends Controller
                 ->with('error', 'This appointment request is already pending.');
         }
 
-        $appointment = Appointment::create(array_merge($payload, ['user_id' => $ownerId]));
+        if (! $pet) {
+            $walkInPet = [
+                'user_id' => null,
+                'owner_name' => trim((string) ($payload['owner_name'] ?? 'Walk-in Client')),
+                'contact_number' => trim((string) ($payload['contact_number'] ?? 'N/A')),
+                'pet_name' => trim((string) ($payload['pet_name'] ?? 'Walk-in Pet')),
+                'species' => 'Unknown',
+                'breed' => null,
+                'sex' => null,
+                'age' => null,
+                'age_value' => null,
+                'age_type' => null,
+            ];
+            unset($payload['pet_name'], $payload['owner_name'], $payload['contact_number']);
+
+            $appointment = DB::transaction(function () use ($payload, $walkInPet, $ownerId): Appointment {
+                $pet = Pet::query()->create($walkInPet);
+
+                return Appointment::create(array_merge($payload, [
+                    'pet_id' => $pet->id,
+                    'user_id' => $ownerId,
+                ]));
+            });
+        } elseif ($request->user()->isClient()) {
+            $appointment = DB::transaction(function () use ($payload, $ownerId): Appointment {
+                $this->appointmentAvailabilityService->lockAndEnsureAvailable($payload['appointment_date']);
+
+                return Appointment::create(array_merge($payload, ['user_id' => $ownerId]));
+            });
+        } else {
+            unset($payload['pet_name'], $payload['owner_name'], $payload['contact_number']);
+            $appointment = Appointment::create(array_merge($payload, ['user_id' => $ownerId]));
+        }
 
         return redirect()
-            ->route('appointments.edit', $appointment)
+            ->route('appointments.index')
             ->with('success', $payload['type'] === Appointment::TYPE_GROOMING
                 ? 'Grooming appointment requested successfully.'
                 : 'Appointment created successfully.');
@@ -196,18 +276,21 @@ class AppointmentController extends Controller
         $payload['type'] = $appointment->type ?? Appointment::TYPE_VACCINATION;
         $originalStatus = $appointment->status;
 
-        if ($user->isClient()) {
-            if (in_array($appointment->status, [
-                Appointment::STATUS_COMPLETED,
-                Appointment::STATUS_CANCELLED,
-                Appointment::STATUS_REJECTED,
-            ], true)) {
-                return back()->with('error', 'This appointment can no longer be modified.');
-            }
+        if (in_array($appointment->status, [
+            Appointment::STATUS_COMPLETED,
+            Appointment::STATUS_CANCELLED,
+            Appointment::STATUS_REJECTED,
+        ], true)) {
+            return back()->with('error', 'Completed or cancelled appointments cannot be rescheduled.');
+        }
 
+        if ($user->isClient()) {
             $payload['pet_id'] = $appointment->pet_id;
             $payload['user_id'] = $appointment->user_id;
-            $payload['status'] = $appointment->status;
+            $payload['status'] = $appointment->status === Appointment::STATUS_APPROVED
+                ? Appointment::STATUS_PENDING
+                : $appointment->status;
+            $payload['accepted_at'] = null;
             if ($this->supportsEmergencyFlag()) {
                 $payload['is_emergency'] = $appointment->is_emergency;
             }
@@ -215,6 +298,7 @@ class AppointmentController extends Controller
 
         if ($user->isStaffOrAdmin()) {
             $payload['user_id'] = $pet->user_id;
+            $payload['status'] = $appointment->status;
             if ($this->supportsEmergencyFlag()) {
                 $payload['is_emergency'] = $request->boolean('is_emergency');
             }
@@ -224,32 +308,77 @@ class AppointmentController extends Controller
         }
 
         $payload = $this->normalizeAppointmentPayload($request, $payload);
-        $appointment->update($payload);
+        if ($user->isClient()) {
+            DB::transaction(function () use ($appointment, $payload): void {
+                $appointmentDate = CarbonImmutable::parse($payload['appointment_date'])->toDateString();
+                $currentAppointmentDate = $appointment->appointment_date->toDateString();
+
+                if ($appointmentDate !== $currentAppointmentDate) {
+                    $this->appointmentAvailabilityService->lockAndEnsureAvailable(
+                        $appointmentDate,
+                        $appointment->id
+                    );
+                }
+
+                $appointment->update($payload);
+            });
+        } else {
+            $appointment->update($payload);
+        }
         $this->logAppointmentStatusChange($request, $appointment, $originalStatus);
 
         return redirect()
             ->route('appointments.index')
-            ->with('success', 'Appointment updated successfully.');
+            ->with('success', $user->isClient() && $originalStatus === Appointment::STATUS_APPROVED
+                ? 'Appointment rescheduled and sent for approval.'
+                : 'Appointment rescheduled successfully.');
     }
 
-    public function destroy(Appointment $appointment): RedirectResponse
+    public function approve(Request $request, Appointment $appointment): RedirectResponse
     {
-        $this->authorize('delete', $appointment);
+        $this->authorize('approve', $appointment);
 
-        $appointmentId = $appointment->id;
+        if ($appointment->status !== Appointment::STATUS_PENDING || $appointment->accepted_at !== null) {
+            return back()->with('error', 'Only unaccepted pending appointments can be approved.');
+        }
+
+        $approvalPayload = [
+            'status' => Appointment::STATUS_PENDING,
+            'accepted_at' => now(),
+        ];
+        if ($this->supportsStaffAssignment()) {
+            $approvalPayload['staff_id'] = $request->user()->id;
+        }
+        $appointment->update($approvalPayload);
         $petName = $appointment->pet?->pet_name ?? 'Unknown pet';
-        $appointment->delete();
-        $this->auditLogService->log(
-            auth()->user(),
-            'deleted',
-            'appointment',
-            $appointmentId,
-            sprintf('Deleted appointment for %s.', $petName)
+        $this->activityLogService->log(
+            $request->user(),
+            'Appointment Accepted',
+            sprintf('%s appointment was accepted.', $petName)
         );
+        $appointment->loadMissing('user', 'pet');
+        $appointment->user?->notify(new AppointmentAcceptedNotification($appointment));
+        $this->logAppointmentStatusChange($request, $appointment, Appointment::STATUS_PENDING);
 
-        return redirect()
-            ->route('appointments.index')
-            ->with('success', 'Appointment deleted successfully.');
+        return back()->with('success', 'Appointment approved successfully.');
+    }
+
+    public function complete(Request $request, Appointment $appointment): RedirectResponse
+    {
+        $this->authorize('complete', $appointment);
+
+        if ($appointment->status !== Appointment::STATUS_APPROVED
+            && ($appointment->status !== Appointment::STATUS_PENDING || ! $appointment->accepted_at)) {
+            return back()->with('error', 'Only accepted appointments can be marked as completed.');
+        }
+
+        $appointment->update([
+            'status' => Appointment::STATUS_COMPLETED,
+            'accepted_at' => null,
+        ]);
+        $this->logAppointmentStatusChange($request, $appointment, Appointment::STATUS_PENDING);
+
+        return back()->with('success', 'Appointment marked as completed.');
     }
 
     public function cancel(Request $request, Appointment $appointment): RedirectResponse
@@ -278,10 +407,39 @@ class AppointmentController extends Controller
         }
 
         $appointment->update($cancelPayload);
+        $appointment->loadMissing('user', 'pet');
+        if ($user->isStaffOrAdmin()) {
+            $appointment->user?->notify(new AppointmentStatusNotification($appointment, Appointment::STATUS_CANCELLED));
+        }
 
         $this->logAppointmentStatusChange($request, $appointment, $originalStatus);
 
         return back()->with('success', 'Appointment cancelled successfully.');
+    }
+
+    private function validatedSearch(Request $request): string
+    {
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        return trim($validated['search'] ?? '');
+    }
+
+    private function applyAppointmentSearch(Builder $query, string $search): void
+    {
+        $term = '%'.$search.'%';
+
+        $query->where(function (Builder $query) use ($term): void {
+            $query->where('purpose', 'like', $term)
+                ->orWhere('type', 'like', $term)
+                ->orWhere('status', 'like', $term)
+                ->orWhere('appointment_date', 'like', $term)
+                ->orWhereHas('pet', function (Builder $petQuery) use ($term): void {
+                    $petQuery->where('pet_name', 'like', $term)
+                        ->orWhere('owner_name', 'like', $term);
+                });
+        });
     }
 
     private function logAppointmentStatusChange(Request $request, Appointment $appointment, string $originalStatus): void
@@ -293,6 +451,8 @@ class AppointmentController extends Controller
         $action = match ($appointment->status) {
             Appointment::STATUS_APPROVED => 'Appointment Approved',
             Appointment::STATUS_COMPLETED => 'Appointment Completed',
+            Appointment::STATUS_REJECTED => 'Appointment Rejected',
+            Appointment::STATUS_CANCELLED => 'Appointment Cancelled',
             default => 'Status Updated',
         };
 
@@ -390,11 +550,14 @@ class AppointmentController extends Controller
         return $supportsStaffAssignment;
     }
 
-    private function isDuplicateAppointmentSubmission(int $ownerId, array $payload): bool
+    private function isDuplicateAppointmentSubmission(?int $ownerId, array $payload): bool
     {
         $fingerprint = [
             'owner_id' => $ownerId,
             'pet_id' => $payload['pet_id'] ?? null,
+            'walk_in_pet_name' => $payload['pet_name'] ?? null,
+            'walk_in_owner_name' => $payload['owner_name'] ?? null,
+            'walk_in_contact_number' => $payload['contact_number'] ?? null,
             'type' => $payload['type'] ?? Appointment::TYPE_VACCINATION,
             'appointment_date' => $payload['appointment_date'] ?? null,
             'preferred_time' => $payload['preferred_time'] ?? null,

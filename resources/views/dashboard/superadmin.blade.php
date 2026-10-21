@@ -1,5 +1,5 @@
 <x-app-layout>
-    <section class="rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-pink-500 p-6 text-white shadow-xl animate-rise">
+    <section class="rounded-3xl bg-gradient-to-r from-indigo-700 via-indigo-600 to-jade-500 p-6 text-white shadow-xl animate-rise">
         <p class="text-xs uppercase tracking-[0.25em] text-white">Admin Dashboard</p>
         <h1 class="mt-2 text-3xl font-extrabold text-white">System Analytics</h1>
         <p class="mt-2 text-sm text-white">Global view across users, patients, appointments, and vaccines.</p>
@@ -7,30 +7,13 @@
 
     <section class="space-y-3">
         <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">System Overview</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            <x-ui.stat-card label="Users" :value="$metrics['totalUsers']" tone="blue" variant="solid" icon="users" />
-            <x-ui.stat-card label="Clients" :value="$metrics['totalClients']" tone="blue" variant="solid" icon="users" />
-            <x-ui.stat-card label="Vet Staff" :value="$metrics['totalStaff']" tone="blue" variant="solid" icon="staff" />
-            <x-ui.stat-card label="Pets" :value="$metrics['totalPets']" tone="blue" variant="solid" icon="pets" />
-            <x-ui.stat-card label="Appointments" :value="$metrics['totalAppointments']" tone="blue" variant="solid" icon="appointments" />
-        </div>
-    </section>
-
-    <section class="space-y-3">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Clinical Alerts</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <x-ui.stat-card label="Vaccinations" :value="$metrics['totalVaccinations']" tone="blue" variant="solid" icon="vaccination" />
-            <x-ui.stat-card label="Due Soon" :value="$metrics['dueSoonVaccinations']" tone="yellow" variant="solid" icon="clock" />
-            <x-ui.stat-card label="Overdue" :value="$metrics['overdueVaccinations']" tone="red" variant="solid" icon="alert" :critical="true" />
-            <x-ui.stat-card label="Confined Pets" :value="$metrics['activeHospitalizations']" tone="purple" variant="solid" icon="hospital" />
-        </div>
-    </section>
-
-    <section class="space-y-3">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Inventory Status</p>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <x-ui.stat-card label="Low Stock Meds" :value="$metrics['lowStockMedicines']" tone="yellow" variant="solid" icon="medicine" />
-            <x-ui.stat-card label="Expired Meds" :value="$metrics['expiredMedicines']" tone="red" variant="solid" icon="alert" :critical="true" />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            <x-ui.stat-card label="Clients" :value="$metrics['totalClients']" icon="users" />
+            <x-ui.stat-card label="Pets" :value="$metrics['totalPets']" icon="pets" />
+            <x-ui.stat-card label="Appointments" :value="$metrics['totalAppointments']" icon="calendar" />
+            <x-ui.stat-card label="Vaccinations" :value="$metrics['totalVaccinations']" icon="syringe" />
+            <x-ui.stat-card label="Due Soon" :value="$metrics['dueSoonVaccinations']" icon="clock" />
+            <x-ui.stat-card label="Overdue" :value="$metrics['overdueVaccinations']" variant="critical" icon="alert" />
         </div>
     </section>
 
@@ -38,40 +21,40 @@
         <div class="space-y-4 lg:col-span-3">
             <x-ui.card title="Vaccination Overview" subtitle="Vaccination appointment analytics">
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
-                        <p class="text-xs uppercase tracking-[0.15em] text-blue-600">Total Vaccination Appointments</p>
-                        <p class="mt-2 text-2xl font-bold text-blue-700">{{ $vaccinationAnalytics['totalAppointments'] }}</p>
+                    <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.15em] text-indigo-600">Total Vaccination Appointments</p>
+                        <p class="mt-2 text-2xl font-bold text-indigo-700">{{ $vaccinationAnalytics['totalAppointments'] }}</p>
                     </div>
-                    <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
-                        <p class="text-xs uppercase tracking-[0.15em] text-blue-600">Most Common Vaccine</p>
+                    <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.15em] text-indigo-600">Most Common Vaccine</p>
                         <p class="mt-2 text-sm font-semibold text-slate-700">{{ $vaccinationAnalytics['mostCommonVaccine'] }}</p>
                     </div>
-                    <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
-                        <p class="text-xs uppercase tracking-[0.15em] text-blue-600">Vaccination Count This Month</p>
-                        <p class="mt-2 text-2xl font-bold text-blue-700">{{ $vaccinationAnalytics['thisMonthCount'] }}</p>
+                    <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.15em] text-indigo-600">Vaccination Count This Month</p>
+                        <p class="mt-2 text-2xl font-bold text-indigo-700">{{ $vaccinationAnalytics['thisMonthCount'] }}</p>
                     </div>
                 </div>
-                <div class="mt-4 border-t border-blue-100 pt-4">
+                <div class="mt-4 border-t border-indigo-100 pt-4">
                     <canvas id="superadminVaccinationChart" height="110"></canvas>
                 </div>
             </x-ui.card>
 
             <x-ui.card title="Checkup Overview" subtitle="Checkup appointment analytics">
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <div class="rounded-xl border border-pink-100 bg-pink-50 p-4">
-                        <p class="text-xs uppercase tracking-[0.15em] text-pink-600">Total Checkup Appointments</p>
-                        <p class="mt-2 text-2xl font-bold text-pink-600">{{ $checkupAnalytics['totalAppointments'] }}</p>
+                    <div class="rounded-xl border border-jade-100 bg-jade-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.15em] text-jade-600">Total Checkup Appointments</p>
+                        <p class="mt-2 text-2xl font-bold text-jade-600">{{ $checkupAnalytics['totalAppointments'] }}</p>
                     </div>
-                    <div class="rounded-xl border border-pink-100 bg-pink-50 p-4">
-                        <p class="text-xs uppercase tracking-[0.15em] text-pink-600">Most Common Checkup Reason</p>
+                    <div class="rounded-xl border border-jade-100 bg-jade-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.15em] text-jade-600">Most Common Checkup Reason</p>
                         <p class="mt-2 text-sm font-semibold text-slate-700">{{ $checkupAnalytics['mostCommonReason'] }}</p>
                     </div>
-                    <div class="rounded-xl border border-pink-100 bg-pink-50 p-4">
-                        <p class="text-xs uppercase tracking-[0.15em] text-pink-600">Checkups This Month</p>
-                        <p class="mt-2 text-2xl font-bold text-pink-600">{{ $checkupAnalytics['thisMonthCount'] }}</p>
+                    <div class="rounded-xl border border-jade-100 bg-jade-50 p-4">
+                        <p class="text-xs uppercase tracking-[0.15em] text-jade-600">Checkups This Month</p>
+                        <p class="mt-2 text-2xl font-bold text-jade-600">{{ $checkupAnalytics['thisMonthCount'] }}</p>
                     </div>
                 </div>
-                <div class="mt-4 border-t border-pink-100 pt-4">
+                <div class="mt-4 border-t border-jade-100 pt-4">
                     <canvas id="superadminCheckupChart" height="110"></canvas>
                 </div>
             </x-ui.card>
@@ -103,7 +86,7 @@
                     <h3 class="text-base font-bold text-slate-900">Reports</h3>
                     <button
                         type="button"
-                        class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:scale-[1.02] hover:bg-blue-700 hover:shadow-lg hover:shadow-pink-100"
+                        class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition duration-200 hover:scale-[1.02] hover:bg-indigo-700 hover:shadow-lg hover:shadow-jade-100"
                         x-on:click="$dispatch('open-modal', 'print-report-modal')"
                     >
                         Print Report
@@ -165,7 +148,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
                             @foreach($staffPerformance as $performance)
-                                <tr class="transition-colors hover:bg-pink-50/60">
+                                <tr class="transition-colors hover:bg-jade-50/60">
                                     <td class="px-4 py-3 font-semibold text-slate-700">{{ $performance['staff_name'] }}</td>
                                     <td class="px-4 py-3">{{ $performance['total_consultations'] }}</td>
                                     <td class="px-4 py-3">{{ $performance['vaccinations_administered'] }}</td>
@@ -235,7 +218,7 @@
     <section class="space-y-5">
         <x-ui.card>
             <div class="flex flex-wrap items-center justify-between gap-2">
-                <h2 class="text-lg font-bold text-blue-700">Vaccination Appointments ({{ $vaccinationAppointments->total() }})</h2>
+                <h2 class="text-lg font-bold text-indigo-700">Vaccination Appointments ({{ $vaccinationAppointments->total() }})</h2>
                 <x-ui.button :href="route('appointments.index')" variant="secondary">Manage All</x-ui.button>
             </div>
             @if($vaccinationAppointments->isEmpty())
@@ -258,7 +241,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
                             @foreach($vaccinationAppointments as $appointment)
-                                <tr class="transition-colors hover:bg-pink-50/60">
+                                <tr class="transition-colors hover:bg-jade-50/60">
                                     <td class="px-4 py-3 font-semibold text-slate-700">{{ $appointment->display_pet_name }}</td>
                                     <td class="px-4 py-3">{{ $appointment->pet?->owner_name ?? 'N/A' }}</td>
                                     <td class="px-4 py-3">{{ optional($appointment->appointment_date)->format('M d, Y') }}</td>
@@ -270,18 +253,17 @@
                                                     Emergency
                                                 </span>
                                             @endif
-                                            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-600">
-                                                {{ $appointment->status_label }}
-                                            </span>
+                                            <x-ui.appointment-status-badge :appointment="$appointment" />
                                         </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex flex-wrap items-center justify-end gap-2">
-                                            <x-ui.button :href="route('appointments.edit', $appointment)" variant="secondary">Edit</x-ui.button>
+                                            <x-ui.appointment-status-menu :appointment="$appointment" />
+                                            <x-ui.button :href="route('appointments.edit', $appointment)" variant="secondary">Reschedule</x-ui.button>
                                             @if(in_array($appointment->status, ['pending', 'approved'], true))
-                                                <form method="POST" action="{{ route('appointments.cancel', $appointment) }}">
+                                                <form method="POST" action="{{ route('appointments.cancel', $appointment) }}" x-on:submit.prevent="$dispatch('confirm-form', { form: $el, message: 'Cancel this appointment?' })">
                                                     @csrf
-                                                    <x-ui.button variant="danger" onclick="return confirm('Cancel this appointment?')">Cancel</x-ui.button>
+                                                    <x-ui.button variant="danger">Cancel</x-ui.button>
                                                 </form>
                                             @endif
                                         </div>
@@ -295,11 +277,11 @@
             @endif
         </x-ui.card>
 
-        <div class="border-t border-pink-100"></div>
+        <div class="border-t border-jade-100"></div>
 
         <x-ui.card>
             <div class="flex flex-wrap items-center justify-between gap-2">
-                <h2 class="text-lg font-bold text-blue-700">Grooming Appointments ({{ $groomingAppointments->total() }})</h2>
+                <h2 class="text-lg font-bold text-indigo-700">Grooming Appointments ({{ $groomingAppointments->total() }})</h2>
                 <x-ui.button :href="route('appointments.index')" variant="secondary">Manage All</x-ui.button>
             </div>
             @if($groomingAppointments->isEmpty())
@@ -322,7 +304,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
                             @foreach($groomingAppointments as $appointment)
-                                <tr class="transition-colors hover:bg-pink-50/60">
+                                <tr class="transition-colors hover:bg-jade-50/60">
                                     <td class="px-4 py-3 font-semibold text-slate-700">{{ $appointment->display_pet_name }}</td>
                                     <td class="px-4 py-3">{{ $appointment->pet?->owner_name ?? 'N/A' }}</td>
                                     <td class="px-4 py-3">{{ optional($appointment->appointment_date)->format('M d, Y') }}</td>
@@ -334,18 +316,17 @@
                                                     Emergency
                                                 </span>
                                             @endif
-                                            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-600">
-                                                {{ $appointment->status_label }}
-                                            </span>
+                                            <x-ui.appointment-status-badge :appointment="$appointment" />
                                         </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex flex-wrap items-center justify-end gap-2">
-                                            <x-ui.button :href="route('appointments.edit', $appointment)" variant="secondary">Edit</x-ui.button>
+                                            <x-ui.appointment-status-menu :appointment="$appointment" />
+                                            <x-ui.button :href="route('appointments.edit', $appointment)" variant="secondary">Reschedule</x-ui.button>
                                             @if(in_array($appointment->status, ['pending', 'approved'], true))
-                                                <form method="POST" action="{{ route('appointments.cancel', $appointment) }}">
+                                                <form method="POST" action="{{ route('appointments.cancel', $appointment) }}" x-on:submit.prevent="$dispatch('confirm-form', { form: $el, message: 'Cancel this appointment?' })">
                                                     @csrf
-                                                    <x-ui.button variant="danger" onclick="return confirm('Cancel this appointment?')">Cancel</x-ui.button>
+                                                    <x-ui.button variant="danger">Cancel</x-ui.button>
                                                 </form>
                                             @endif
                                         </div>
@@ -374,8 +355,8 @@
                         {
                             label: 'Vaccination Appointments',
                             data: @json($vaccinationChart['totals']),
-                            borderColor: '#2563eb',
-                            backgroundColor: 'rgba(37, 99, 235, 0.14)',
+                            borderColor: '#3B3281',
+                            backgroundColor: 'rgba(59, 50, 129, 0.14)',
                             tension: 0.3,
                             fill: true,
                         }
@@ -400,8 +381,8 @@
                         {
                             label: 'Checkup Appointments',
                             data: @json($checkupChart['totals']),
-                            borderColor: '#ec4899',
-                            backgroundColor: 'rgba(236, 72, 153, 0.12)',
+                            borderColor: '#02BF95',
+                            backgroundColor: 'rgba(2, 191, 149, 0.12)',
                             tension: 0.3,
                             fill: true,
                         }

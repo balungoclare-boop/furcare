@@ -78,17 +78,6 @@ class ReportController extends Controller
             ->with('success', 'Report updated successfully.');
     }
 
-    public function destroy(Report $report): RedirectResponse
-    {
-        $this->authorize('delete', $report);
-
-        $report->delete();
-
-        return redirect()
-            ->route('reports.index')
-            ->with('success', 'Report deleted successfully.');
-    }
-
     public function generateReport(Request $request): View
     {
         $this->authorize('viewAny', Report::class);

@@ -1,5 +1,8 @@
 <x-app-layout>
-    <x-ui.card title="Edit Appointment" subtitle="Update date, status, and purpose.">
+    <x-ui.card
+        title="Reschedule Appointment"
+        subtitle="Choose a new date or time, and update the appointment details."
+    >
         @include('appointments._form', [
             'action' => route('appointments.update', $appointment),
             'method' => 'PUT',

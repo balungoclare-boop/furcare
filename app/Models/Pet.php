@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Model;
 
 class Pet extends Model
 {
+    /** @use HasFactory<\Database\Factories\PetFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'owner_name',
@@ -20,11 +24,21 @@ class Pet extends Model
         'age',
         'age_value',
         'age_type',
+        'date_of_birth',
+        'weight',
+        'color',
+        'is_neutered',
+        'microchip_number',
+        'allergies',
+        'notes',
     ];
 
     protected $casts = [
         'age' => 'integer',
         'age_value' => 'integer',
+        'date_of_birth' => 'date',
+        'weight' => 'decimal:2',
+        'is_neutered' => 'boolean',
     ];
 
     public function scopeOwnedBy(Builder $query, User $user): Builder
@@ -68,6 +82,18 @@ class Pet extends Model
 
     public function getDisplayAgeAttribute(): ?string
     {
+        if ($this->date_of_birth !== null) {
+            $months = (int) $this->date_of_birth->diffInMonths(now());
+
+            if ($months < 12) {
+                return $months.' month'.($months === 1 ? '' : 's');
+            }
+
+            $years = intdiv($months, 12);
+
+            return $years.' year'.($years === 1 ? '' : 's');
+        }
+
         $value = $this->age_value ?? $this->age;
 
         if ($value === null) {
